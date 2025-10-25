@@ -10,6 +10,7 @@ import CloudinaryVideoBackground from '../components/CloudinaryVideoBackground';
 import SEOHead from '../components/SEOHead';
 import WhatsAppButton from '../components/WhatsAppButton';
 import DiscoverSpace from './DiscoverSpace';
+import ShishaGallerySection from '../components/ShishaGallerySection';
 
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
@@ -171,6 +172,9 @@ const LandingPage: React.FC = () => {
             <MenuCategories />
           </div>
         </section>
+
+        {/* Shisha Gallery Section */}
+        <ShishaGallerySection />
 
         <DiscoverSpace />
 
