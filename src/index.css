@@ -27,3 +27,7 @@ body {
 .animate-move-right {
   animation: move-right 1.2s infinite;
 }
+
+button{
+  cursor: pointer;
+}

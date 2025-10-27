@@ -41,82 +41,212 @@ const ShishaGallerySection: React.FC = () => {
   };
 
   return (
-    <section className="relative bg-black py-16 overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <>
+      {/* JSON-LD Structured Data para SEO */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'ImageGallery',
+            name: 'Galería de Cachimbas EGO HOUSE Madrid',
+            description:
+              'Galería exclusiva de cachimbas artesanales y experiencias únicas en EGO HOUSE Madrid',
+            url: 'https://www.egohousebynavs.com/galeria-cachimbas',
+            image: [
+              {
+                '@type': 'ImageObject',
+                url: 'https://res.cloudinary.com/dm70hhhnm/image/upload/v1759180344/_5046984_fvuzw1.jpg',
+                description:
+                  'Cachimba premium artesanal EGO HOUSE Madrid - Experiencia sensorial única',
+                name: 'Premium Selection',
+              },
+              {
+                '@type': 'ImageObject',
+                url: 'https://res.cloudinary.com/dm70hhhnm/image/upload/v1759180344/_5046880_xvuv7k.jpg',
+                description:
+                  'Ambiente exclusivo cachimba Madrid EGO HOUSE - Momentos únicos compartidos',
+                name: 'Ambiente Exclusivo',
+              },
+              {
+                '@type': 'ImageObject',
+                url: 'https://res.cloudinary.com/dm70hhhnm/image/upload/v1759180344/_5046973_igjg8n.jpg',
+                description:
+                  'Sabores artesanales cachimba Madrid EGO HOUSE - Mezclas premium exclusivas',
+                name: 'Sabores Artesanales',
+              },
+            ],
+            publisher: {
+              '@type': 'Organization',
+              name: 'EGO HOUSE Madrid',
+              url: 'https://www.egohousebynavs.com',
+            },
+          }),
+        }}
+      />
+
+      <section
+        className="relative bg-black py-16 overflow-hidden"
+        itemScope
+        itemType="https://schema.org/ImageGallery"
+      >
+        <meta itemProp="name" content="Galería de Cachimbas EGO HOUSE Madrid" />
+        <meta
+          itemProp="description"
+          content="Experiencias únicas de cachimba artesanal en Madrid"
+        />
         <motion.div
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true }}
-          className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center min-h-[60vh]"
+          className="grid grid-cols-1 lg:grid-cols-2 gap-0 items-stretch min-h-[60vh] w-full"
         >
-          {/* Lado Izquierdo - Collage de Imágenes */}
+          {/* Lado Izquierdo - Layout Visual Impactante */}
           <motion.div
             variants={itemVariants}
-            className="relative h-[500px] lg:h-[600px]"
+            className="relative h-full min-h-[500px] lg:min-h-[600px] px-4 sm:px-6 lg:px-8 flex flex-col justify-center"
           >
-            {/* Imagen 1 - Principal (más grande) */}
-            <motion.div
-              variants={imageVariants}
-              className="absolute top-0 left-0 w-3/5 h-3/5 z-10"
-            >
-              <div className="w-full h-full rounded-2xl overflow-hidden shadow-2xl">
-                <img
-                  src="/hookas.jpg"
-                  alt="Cachimba premium EGO HOUSE"
-                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
-                />
-                <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-black/20" />
-              </div>
-            </motion.div>
+            <div className="space-y-6 lg:space-y-8">
+              {/* Row 1: Imagen Grande Izquierda - Texto Elegante Derecha */}
+              <motion.div
+                variants={imageVariants}
+                className="flex items-center gap-8 lg:gap-12 group"
+              >
+                <div className="relative w-48 h-40 lg:w-64 lg:h-48 shrink-0">
+                  <div className="absolute inset-0 rounded-3xl overflow-hidden shadow-2xl transform rotate-1 group-hover:rotate-0 transition-transform duration-500">
+                    <img
+                      src="https://res.cloudinary.com/dm70hhhnm/image/upload/v1759180344/_5046984_fvuzw1.jpg"
+                      alt="Cachimba premium artesanal EGO HOUSE Madrid - Experiencia sensorial única"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                      loading="lazy"
+                      width="256"
+                      height="192"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent to-black/40" />
+                  </div>
+                  <div className="absolute -inset-1 bg-gradient-to-r from-white/20 to-white/5 rounded-3xl blur-sm -z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                </div>
+                <div className="flex-1 text-white">
+                  <div className="relative">
+                    <span className="text-xs uppercase tracking-[0.2em] text-white/50 font-medium mb-3 block">
+                      01
+                    </span>
+                    <h4 className="text-2xl lg:text-3xl font-light mb-4 leading-tight">
+                      Premium
+                      <br />
+                      Selection
+                    </h4>
+                    <p className="text-base lg:text-lg text-white/70 font-light leading-relaxed max-w-sm">
+                      Cachimbas artesanales seleccionadas especialmente para una
+                      experiencia sensorial única en EGO HOUSE Madrid
+                    </p>
+                    <div className="w-16 h-px bg-white/30 mt-4" />
+                  </div>
+                </div>
+              </motion.div>
 
-            {/* Imagen 2 - Superpuesta derecha */}
-            <motion.div
-              variants={imageVariants}
-              className="absolute top-1/4 right-0 w-2/5 h-2/5 z-20"
-            >
-              <div className="w-full h-full rounded-xl overflow-hidden shadow-xl">
-                <img
-                  src="https://res.cloudinary.com/dm70hhhnm/image/upload/v1729629543/cachimba2_mhsb4z.jpg"
-                  alt="Ambiente cachimba EGO HOUSE"
-                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
-                />
-                <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-black/30" />
-              </div>
-            </motion.div>
+              {/* Row 2: Texto Elegante Izquierda - Imagen Grande Derecha */}
+              <motion.div
+                variants={imageVariants}
+                className="flex items-center gap-8 lg:gap-12 group"
+              >
+                <div className="flex-1 text-white text-right">
+                  <div className="relative">
+                    <span className="text-xs uppercase tracking-[0.2em] text-white/50 font-medium mb-3 block">
+                      02
+                    </span>
+                    <h4 className="text-2xl lg:text-3xl font-light mb-4 leading-tight">
+                      Ambiente
+                      <br />
+                      Exclusivo
+                    </h4>
+                    <p className="text-base lg:text-lg text-white/70 font-light leading-relaxed max-w-sm ml-auto">
+                      Un espacio diseñado para crear momentos inolvidables en
+                      cada sesión compartida en Madrid
+                    </p>
+                    <div className="w-16 h-px bg-white/30 mt-4 ml-auto" />
+                  </div>
+                </div>
+                <div className="relative w-48 h-40 lg:w-64 lg:h-48 shrink-0">
+                  <div className="absolute inset-0 rounded-3xl overflow-hidden shadow-2xl transform -rotate-1 group-hover:rotate-0 transition-transform duration-500">
+                    <img
+                      src="https://res.cloudinary.com/dm70hhhnm/image/upload/v1759180344/_5046880_xvuv7k.jpg"
+                      alt="Ambiente exclusivo cachimba Madrid EGO HOUSE - Momentos únicos compartidos"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                      loading="lazy"
+                      width="256"
+                      height="192"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-l from-transparent to-black/40" />
+                  </div>
+                  <div className="absolute -inset-1 bg-gradient-to-l from-white/20 to-white/5 rounded-3xl blur-sm -z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                </div>
+              </motion.div>
 
-            {/* Imagen 3 - Inferior izquierda */}
-            <motion.div
-              variants={imageVariants}
-              className="absolute bottom-0 left-1/4 w-2/5 h-2/5 z-15"
-            >
-              <div className="w-full h-full rounded-xl overflow-hidden shadow-xl">
-                <img
-                  src="https://res.cloudinary.com/dm70hhhnm/image/upload/v1729629543/cachimba3_dqwxh8.jpg"
-                  alt="Cachimba artesanal EGO HOUSE"
-                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
-                />
-                <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-black/30" />
-              </div>
-            </motion.div>
+              {/* Row 3: Imagen Grande Izquierda - Texto Elegante Derecha */}
+              <motion.div
+                variants={imageVariants}
+                className="flex items-center gap-8 lg:gap-12 group"
+              >
+                <div className="relative w-48 h-40 lg:w-64 lg:h-48 shrink-0">
+                  <div className="absolute inset-0 rounded-3xl overflow-hidden shadow-2xl transform rotate-1 group-hover:rotate-0 transition-transform duration-500">
+                    <img
+                      src="https://res.cloudinary.com/dm70hhhnm/image/upload/v1759180344/_5046973_igjg8n.jpg"
+                      alt="Sabores artesanales cachimba Madrid EGO HOUSE - Mezclas premium exclusivas"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                      loading="lazy"
+                      width="256"
+                      height="192"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent to-black/40" />
+                  </div>
+                  <div className="absolute -inset-1 bg-gradient-to-r from-white/20 to-white/5 rounded-3xl blur-sm -z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                </div>
+                <div className="flex-1 text-white">
+                  <div className="relative">
+                    <span className="text-xs uppercase tracking-[0.2em] text-white/50 font-medium mb-3 block">
+                      03
+                    </span>
+                    <h4 className="text-2xl lg:text-3xl font-light mb-4 leading-tight">
+                      Sabores
+                      <br />
+                      Artesanales
+                    </h4>
+                    <p className="text-base lg:text-lg text-white/70 font-light leading-relaxed max-w-sm">
+                      Mezclas exclusivas preparadas por nuestros maestros
+                      tabaqueros con ingredientes premium en Madrid
+                    </p>
+                    <div className="w-16 h-px bg-white/30 mt-4" />
+                  </div>
+                </div>
+              </motion.div>
+            </div>
 
-            {/* Elemento decorativo */}
+            {/* Elementos decorativos sofisticados */}
             <motion.div
               variants={imageVariants}
-              className="absolute -top-4 -right-4 w-24 h-24 bg-white/5 rounded-full blur-xl"
+              className="absolute top-8 right-8 w-2 h-16 bg-gradient-to-b from-white/40 to-transparent"
             />
             <motion.div
               variants={imageVariants}
-              className="absolute -bottom-8 -left-8 w-32 h-32 bg-white/5 rounded-full blur-2xl"
+              className="absolute bottom-8 left-8 w-2 h-16 bg-gradient-to-t from-white/40 to-transparent"
+            />
+            <motion.div
+              variants={imageVariants}
+              className="absolute top-1/2 -left-px w-px h-32 bg-gradient-to-b from-transparent via-white/20 to-transparent"
             />
           </motion.div>
 
           {/* Lado Derecho - Contenido con Imagen de Fondo */}
-          <motion.div variants={itemVariants} className="relative">
+          <motion.div
+            variants={itemVariants}
+            className="relative h-full min-h-[500px] lg:min-h-[600px] w-full"
+          >
             {/* Imagen de fondo */}
-            <div className="absolute inset-0 rounded-3xl overflow-hidden">
+            <div className="absolute inset-0 overflow-hidden h-full w-full">
               <img
-                src="https://res.cloudinary.com/dm70hhhnm/image/upload/v1729629543/cachimba-fondo_ixvmku.jpg"
+                src="https://res.cloudinary.com/dm70hhhnm/image/upload/v1761478223/PAB01090_fnbn5o.jpg"
                 alt="Fondo galería cachimbas"
                 className="w-full h-full object-cover"
               />
@@ -124,7 +254,7 @@ const ShishaGallerySection: React.FC = () => {
             </div>
 
             {/* Contenido */}
-            <div className="relative z-10 p-8 lg:p-12 min-h-[400px] flex flex-col justify-center text-white">
+            <div className="relative z-10 p-8 lg:p-12 h-full flex flex-col justify-center text-white">
               <motion.div variants={itemVariants} className="mb-6">
                 <span className="inline-block text-sm font-medium text-white/70 uppercase tracking-wider mb-4">
                   Galería
@@ -156,8 +286,8 @@ const ShishaGallerySection: React.FC = () => {
             </div>
           </motion.div>
         </motion.div>
-      </div>
-    </section>
+      </section>
+    </>
   );
 };
 

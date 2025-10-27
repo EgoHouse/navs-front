@@ -2,34 +2,10 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useCategories } from '../hooks/useCatalog';
+
 
 const MenuCategories: React.FC = () => {
   const navigate = useNavigate();
-  const { categories: menuCategories, isLoading, error } = useCategories();
-
-  // Calcular el total de items en todas las categorías
-  const totalItems = menuCategories.reduce((total, category) => {
-    return (
-      total +
-      category.subcategories.reduce((subTotal, subcategory) => {
-        if (subcategory.items) {
-          return subTotal + subcategory.items.length;
-        }
-        if (subcategory.subsections) {
-          return (
-            subTotal +
-            subcategory.subsections.reduce(
-              (subSubTotal, subsection) =>
-                subSubTotal + subsection.items.length,
-              0
-            )
-          );
-        }
-        return subTotal;
-      }, 0)
-    );
-  }, 0);
 
   const handleMenuClick = () => {
     navigate('/menu/general');
@@ -62,27 +38,6 @@ const MenuCategories: React.FC = () => {
     },
   };
 
-  // Manejo de estados de carga y error
-  if (isLoading) {
-    return (
-      <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 font-['Poppins']">
-        <div className="text-center py-20">
-          <div className="text-white text-xl">Cargando carta...</div>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 font-['Poppins']">
-        <div className="text-center py-20">
-          <div className="text-red-400 text-xl">Error al cargar la carta</div>
-          <div className="text-gray-300 text-sm mt-2">{error}</div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 font-['Poppins']">
@@ -139,9 +94,9 @@ const MenuCategories: React.FC = () => {
           <div className="relative h-96 flex flex-col justify-between p-8 text-white">
             {/* Header */}
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium bg-white/20 px-3 py-1 rounded-full backdrop-blur-sm">
+              {/* <span className="text-sm font-medium bg-white/20 px-3 py-1 rounded-full backdrop-blur-sm">
                 {totalItems} productos
-              </span>
+              </span> */}
             </div>
 
             {/* Content */}

@@ -11,6 +11,7 @@ import SEOHead from '../components/SEOHead';
 import WhatsAppButton from '../components/WhatsAppButton';
 import DiscoverSpace from './DiscoverSpace';
 import ShishaGallerySection from '../components/ShishaGallerySection';
+import CocktailPersonalizationSection from '../components/CocktailPersonalizationSection';
 
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
@@ -176,16 +177,14 @@ const LandingPage: React.FC = () => {
         {/* Shisha Gallery Section */}
         <ShishaGallerySection />
 
+        {/* Cocktail Personalization Section */}
+        <CocktailPersonalizationSection />
+
         <DiscoverSpace />
 
         {/* Location Map Section */}
         <LocationMap />
 
-        {/* Gallery Section - Oculta temporalmente */}
-        {/* <Gallery /> */}
-
-        {/* Events Section - Oculta temporalmente */}
-        {/* <Events /> */}
       </main>
 
       {/* Footer */}

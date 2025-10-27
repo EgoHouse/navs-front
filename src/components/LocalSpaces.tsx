@@ -28,10 +28,10 @@ const LocalSpaces: React.FC = () => {
     {
       id: 'sala',
       name: 'Sala Principal',
-      title: 'Ambiente Social',
+      title: 'Salon Principal',
       description:
-        'Un espacio acogedor diseñado para momentos compartidos, donde cada detalle invita a la conversación y el disfrute.',
-      capacity: '40-50 personas',
+        'Un espacio acogedor diseñado para purificar tu ego , donde cada detalle invita a la conversación y el disfrute.',
+      capacity: '40 personas',
       atmosphere: 'Social y relajado',
       images: [
         'https://res.cloudinary.com/dm70hhhnm/image/upload/v1761152399/imagen_2025-10-22_185956992_zsnezc.png',
@@ -99,27 +99,63 @@ const LocalSpaces: React.FC = () => {
     spaces.find((space) => space.id === activeSpace) || spaces[0];
 
   return (
-    <section id="local" className="relative bg-black py-32">
-      <div className="max-w-6xl mx-auto px-6 lg:px-8">
-        {/* Minimal Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true }}
-          className="text-center mb-20"
-        >
-          <h2 className="text-6xl md:text-8xl font-extralight mb-6 text-white tracking-tight">
-            Espacios
-          </h2>
-          <div className="w-24 h-px bg-white/30 mx-auto"></div>
-        </motion.div>
+    <section id="local" className="relative bg-black">
+      {/* Video Banner - Full Width at Top */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        transition={{ duration: 0.8 }}
+        viewport={{ once: true }}
+        className="relative w-full overflow-hidden"
+      >
+        {/* Video Background */}
+        <div className="relative h-[200px] md:h-[250px] lg:h-[300px]">
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="absolute inset-0 w-full h-full object-cover"
+            style={{ filter: 'brightness(0.4)' }}
+          >
+            <source
+              src="https://res.cloudinary.com/dm70hhhnm/video/upload/f_auto,q_auto/Copia_de_lv_0_20251025183123_1_tq44e9.mp4"
+              type="video/mp4"
+            />
+          </video>
 
+          {/* Dark overlay for better text readability */}
+          <div className="absolute inset-0 bg-black/40"></div>
+
+          {/* Content over video - positioned at bottom */}
+          <div className="absolute bottom-8 left-0 right-0 z-10 text-center px-6">
+            <motion.h2
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.3 }}
+              viewport={{ once: true }}
+              className="text-4xl md:text-6xl lg:text-7xl font-extralight mb-4 text-white tracking-tight [text-shadow:0_2px_10px_rgb(0_0_0/70%)]"
+            >
+              Espacios
+            </motion.h2>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.6, delay: 0.5 }}
+              viewport={{ once: true }}
+              className="w-20 h-px bg-white/50 mx-auto"
+            ></motion.div>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Main Content Container */}
+      <div className="max-w-6xl mx-auto px-6 lg:px-8 py-20">
         {/* Simple Tab Navigation */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
           viewport={{ once: true }}
           className="flex justify-center mb-16"
         >
