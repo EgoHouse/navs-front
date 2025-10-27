@@ -62,6 +62,20 @@ class OrderService {
     const response = await this.updateOrder(id, { status: 'open' });
     return response;
   }
+
+  // Get order by tracking number (public endpoint)
+  async getOrderByTracking(trackingNumber: string): Promise<Order> {
+    const response = await apiClient.get(`/orders/tracking/${trackingNumber}`);
+    return response.data;
+  }
+
+  // Advance order to next event status
+  async advanceOrderEventStatus(id: string, newEventStatus: string): Promise<Order> {
+    const response = await apiClient.put(`/orders/${id}/event-status`, {
+      eventStatus: newEventStatus
+    });
+    return response.data;
+  }
 }
 
 export const orderService = new OrderService();

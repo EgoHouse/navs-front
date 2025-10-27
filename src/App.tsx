@@ -9,6 +9,8 @@ import ProtectedRoute from './components/ProtectedRoute';
 import LocalPage from './pages/LocalPage';
 import TableManagement from './pages/TableManagement';
 import DesayunosPage from './pages/DesayunosPage';
+import OrderTrackingPage from './pages/OrderTrackingPage';
+import AuthPage from './pages/AuthPage';
 
 function App() {
   return (
@@ -23,7 +25,21 @@ function App() {
           <Route path="/shisha" element={<ShishaPage />} />
           <Route path="/galeria-cachimbas" element={<GaleriaCachimbas />} />
           <Route path="/local" element={<LocalPage />} />      
-          <Route path="/desayunos" element={<DesayunosPage />} />
+          <Route path="/tracking" element={<OrderTrackingPage />} />
+          <Route path="/tracking/:trackingNumber" element={<OrderTrackingPage />} />
+          
+          {/* Ruta de autenticación - detección automática por query params */}
+          <Route path="/auth" element={<AuthPage />} />
+
+          {/* Rutas protegidas para usuarios normales */}
+          <Route 
+            path="/desayunos" 
+            element={
+              <ProtectedRoute requireUser={true}>
+                <DesayunosPage />
+              </ProtectedRoute>
+            } 
+          />
 
           {/* Rutas protegidas - requieren autenticación */}
           <Route 

@@ -4,6 +4,8 @@ export interface User {
   id: string;
   email: string;
   name: string;
+  phoneNumber: string;
+  address?: string;
   role: 'USER' | 'ADMIN';
   createdAt?: string;
   updatedAt?: string;
@@ -18,6 +20,8 @@ export interface RegisterRequest {
   email: string;
   password: string;
   name: string;
+  phoneNumber: string;
+  address?: string;
   role?: 'USER' | 'ADMIN';
 }
 

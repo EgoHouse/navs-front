@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { orderService } from '../services';
+import { useAuthWithServices } from '../hooks/useAuthWithServices';
 import type { CreateOrderDto, OrderType } from '../types';
 import { ORDER_CONFIG } from '../types/order.types';
 
@@ -10,16 +11,31 @@ interface OrderFormProps {
 }
 
 export const OrderForm: React.FC<OrderFormProps> = ({ selectedMenuType, onSuccess }) => {
+  const { user, isAuthenticated } = useAuthWithServices();
   const [formData, setFormData] = useState<CreateOrderDto>({
     name: '',
     phone: '',
     email: '',
+    address: '',
     quantity: 1,
     observations: '',
     type: selectedMenuType
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+
+  // Autocompletar datos del usuario si está autenticado
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      setFormData(prev => ({
+        ...prev,
+        name: user.name || '',
+        phone: user.phoneNumber || '',
+        email: user.email || '',
+        address: user.address || ''
+      }));
+    }
+  }, [isAuthenticated, user]);
 
   const handleInputChange = (field: keyof CreateOrderDto, value: any) => {
     setFormData(prev => ({
@@ -59,7 +75,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ selectedMenuType, onSucces
       onSubmit={handleSubmit}
       className="bg-white/5 backdrop-blur-sm rounded-lg p-8 border border-white/20"
     >
-      <h3 className="text-2xl font-light text-white mb-8 text-center">
+      <h3 className="text-2xl font-light text-white mb-4 text-center">
         Datos del pedido
       </h3>
 
@@ -86,6 +102,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ selectedMenuType, onSucces
         </div>
       </div>
 
+      {/* Primera fila - Datos personales */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         {/* Name */}
         <div>
@@ -116,7 +133,10 @@ export const OrderForm: React.FC<OrderFormProps> = ({ selectedMenuType, onSucces
             placeholder="+34 600 000 000"
           />
         </div>
+      </div>
 
+      {/* Segunda fila - Email y dirección */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         {/* Email */}
         <div>
           <label className="block text-white/70 text-sm mb-2">
@@ -148,6 +168,22 @@ export const OrderForm: React.FC<OrderFormProps> = ({ selectedMenuType, onSucces
               </option>
             ))}
           </select>
+        </div>
+      </div>
+
+      {/* Tercera fila - Dirección (ancho completo) */}
+      <div className="mb-6">
+        <div>
+          <label className="block text-white/70 text-sm mb-2">
+            Dirección <span className="text-white/50">(opcional)</span>
+          </label>
+          <input
+            type="text"
+            value={formData.address}
+            onChange={(e) => handleInputChange('address', e.target.value)}
+            className="w-full bg-white/10 border border-white/20 rounded px-4 py-3 text-white placeholder-white/50 focus:border-white focus:outline-none transition-colors"
+            placeholder="Tu dirección de entrega"
+          />
         </div>
       </div>
 

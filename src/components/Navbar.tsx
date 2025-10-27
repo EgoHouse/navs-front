@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, LogIn } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useAuthWithServices } from '../hooks/useAuthWithServices';
 import UserMenu from './UserMenu';
 import AuthModal from './AuthModal';
@@ -11,6 +12,7 @@ interface NavbarProps {
 
 const Navbar: React.FC<NavbarProps> = ({ onLoginClick }) => {
   const { isAuthenticated } = useAuthWithServices();
+  const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -19,7 +21,8 @@ const Navbar: React.FC<NavbarProps> = ({ onLoginClick }) => {
     if (onLoginClick) {
       onLoginClick();
     } else {
-      setShowAuthModal(true);
+      // Redirigir a la página de autenticación en lugar de abrir modal
+      navigate('/auth?from=home');
     }
   };
 
@@ -122,7 +125,7 @@ const Navbar: React.FC<NavbarProps> = ({ onLoginClick }) => {
               ))}
             </div>
 
-            {/* Desktop Authentication Area */}
+            {/* Desktop Authentication Area
             <div className="hidden md:block">
               {isAuthenticated ? (
                 <UserMenu />
@@ -137,7 +140,7 @@ const Navbar: React.FC<NavbarProps> = ({ onLoginClick }) => {
                   Acceder
                 </motion.button>
               )}
-            </div>
+            </div> */}
 
             {/* Mobile Menu Button */}
             <motion.button
@@ -202,7 +205,7 @@ const Navbar: React.FC<NavbarProps> = ({ onLoginClick }) => {
                     </motion.button>
                   ))}
                   
-                  {/* Authentication Area in Mobile Menu */}
+                  {/* Authentication Area in Mobile Menu
                   <div className="pt-4 border-t border-white/10">
                     {isAuthenticated ? (
                       <div className="px-4">
@@ -221,7 +224,7 @@ const Navbar: React.FC<NavbarProps> = ({ onLoginClick }) => {
                         Acceder
                       </motion.button>
                     )}
-                  </div>
+                  </div> */}
                 </div>
               </div>
             </motion.div>
@@ -229,11 +232,11 @@ const Navbar: React.FC<NavbarProps> = ({ onLoginClick }) => {
         )}
       </AnimatePresence>
 
-      {/* Auth Modal */}
+      {/* Auth Modal
       <AuthModal 
         isOpen={showAuthModal} 
         onClose={() => setShowAuthModal(false)} 
-      />
+      /> */}
     </>
   );
 };

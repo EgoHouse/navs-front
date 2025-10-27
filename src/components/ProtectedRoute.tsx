@@ -6,6 +6,7 @@ import { useAuthWithServices } from '../hooks/useAuthWithServices';
 interface ProtectedRouteProps {
   children: React.ReactNode;
   requireAdmin?: boolean;
+  requireUser?: boolean;
   redirectTo?: string;
 }
 
@@ -15,6 +16,7 @@ interface ProtectedRouteProps {
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
   children, 
   requireAdmin = false,
+  requireUser = false,
   redirectTo = '/'
 }) => {
   const { isAuthenticated, user, isLoading } = useAuthWithServices();
@@ -34,6 +36,15 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // Redirigir a auth si no está autenticado
   if (!isAuthenticated) {
+    // Si requiere admin, ir a la página principal
+    if (requireAdmin) {
+      return <Navigate to={redirectTo} state={{ from: location }} replace />;
+    }
+    // Si requiere usuario normal, ir a la página de auth con query param
+    if (requireUser) {
+      return <Navigate to="/auth?from=desayunos" state={{ from: location }} replace />;
+    }
+    // Por defecto, ir a donde se especifique
     return <Navigate to={redirectTo} state={{ from: location }} replace />;
   }
 
@@ -57,6 +68,11 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
         </div>
       </div>
     );
+  }
+
+  // Verificar que tenga token de usuario si es requerido
+  if (requireUser && !user) {
+    return <Navigate to="/auth?from=desayunos" state={{ from: location }} replace />;
   }
 
   return <>{children}</>;

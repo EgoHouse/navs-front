@@ -1,9 +1,19 @@
 // types/order.types.ts
+export type OrderEventStatus = 'recibido' | 'en_preparacion' | 'en_camino' | 'entregado';
+
+export const OrderEventStatus = {
+  RECIBIDO: 'recibido' as const,
+  EN_PREPARACION: 'en_preparacion' as const,
+  EN_CAMINO: 'en_camino' as const,
+  ENTREGADO: 'entregado' as const
+} as const;
+
 export interface Order {
   id: string;
   name: string;
   phone: string;
   email: string;
+  address?: string;
   quantity: number;
   observations?: string;
   type: OrderType;
@@ -11,6 +21,8 @@ export interface Order {
   food: string[];
   // 'pending' -> initial state, 'open' -> active, 'closed' -> finished
   status: 'pending' | 'open' | 'closed';
+  trackingNumber: string;
+  eventStatus: OrderEventStatus;
   createdAt: string;
   updatedAt: string;
 }
@@ -27,6 +39,7 @@ export interface CreateOrderDto {
   name: string;
   phone: string;
   email: string;
+  address?: string;
   quantity: number;
   observations?: string;
   type: OrderType;
@@ -38,10 +51,12 @@ export interface UpdateOrderDto {
   name?: string;
   phone?: string;
   email?: string;
+  address?: string;
   quantity?: number;
   observations?: string;
   type?: OrderType;
   status?: 'pending' | 'open' | 'closed';
+  eventStatus?: OrderEventStatus;
 }
 
 export interface OrderStats {
@@ -58,17 +73,17 @@ export interface OrderStats {
 export const ORDER_CONFIG = {
   [OrderType.CLASSIC]: {
     price: 4,
-    food: ['Coffee', 'Orange juice', 'Croissant'],
+    food: ['Café', 'Zumo de naranja', 'Croissant'],
     label: 'Clásico'
   },
   [OrderType.TRADITIONAL]: {
     price: 5,
-    food: ['Coffee', 'Orange juice', 'Ham sandwich'],
+    food: ['Café', 'Zumo de naranja', 'Mollete de jamón'],
     label: 'Tradicional'
   },
   [OrderType.PREMIUM]: {
     price: 6,
-    food: ['Coffee', 'Orange juice', 'Avocado and salmon sandwich'],
+    food: ['Café', 'Zumo de naranja', 'Mollete de aguacate y salmón'],
     label: 'Premium'
   }
 } as const;

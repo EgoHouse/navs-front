@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
+import { LogIn, User, LogOut } from 'lucide-react';
 import BackToMenuButton from '../components/BackToMenuButton';
 import Footer from '../components/Footer';
 import SEOHead from '../components/SEOHead';
 import WhatsAppButton from '../components/WhatsAppButton';
 import { OrderForm } from '../components/OrderForm';
+import { useAuthWithServices } from '../hooks/useAuthWithServices';
 import type { OrderType } from '../types';
 import { ORDER_CONFIG } from '../types/order.types';
 
@@ -17,6 +20,8 @@ interface BreakfastMenu {
 }
 
 const DesayunosPage: React.FC = () => {
+  const navigate = useNavigate();
+  const { user, isAuthenticated, logout } = useAuthWithServices();
   const [selectedMenu, setSelectedMenu] = useState<OrderType | null>(null);
   const [orderSubmitted, setOrderSubmitted] = useState(false);
 
@@ -128,6 +133,34 @@ const DesayunosPage: React.FC = () => {
       {/* Back to Menu Button */}
       <BackToMenuButton />
 
+      {/* Login Button - Top Right (if not authenticated) */}
+      {!isAuthenticated && (
+        <button
+          onClick={() => navigate('/auth?from=desayunos')}
+          className="fixed top-6 right-6 z-30 flex gap-1 bg-white/5 backdrop-blur-sm rounded-full p-1 border border-white/10 text-white px-4 py-2 font-medium transition-all hover:bg-white/10"
+        >
+          <LogIn size={16} />
+          <span className="hidden sm:inline">Iniciar Sesión</span>
+        </button>
+      )}
+
+      {/* User indicator - Top Right (if authenticated) */}
+      {isAuthenticated && user && (
+        <div className="fixed top-6 right-6 z-30 flex gap-1 bg-white/5 backdrop-blur-sm rounded-full p-1 border border-white/10 text-white px-4 py-2">
+          <User size={16} />
+          <span className="hidden sm:inline text-sm">Hola, {user.name}</span>
+          <button
+            onClick={() => {
+              logout();
+            }}
+            className="ml-2 p-1 hover:bg-white/10 rounded-full transition-colors"
+            title="Cerrar sesión"
+          >
+            <LogOut size={14} />
+          </button>
+        </div>
+      )}
+
       {/* Main Content */}
       <main className="relative min-h-screen pt-24 pb-16 overflow-hidden">
         {/* Background Image */}
@@ -148,7 +181,7 @@ const DesayunosPage: React.FC = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="text-center mb-16"
+            className="text-center mb-8"
           >
             <h1 className="text-5xl md:text-7xl font-extralight text-white mb-6 tracking-tight">
               Desayunos
