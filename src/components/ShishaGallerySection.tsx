@@ -86,6 +86,7 @@ const ShishaGallerySection: React.FC = () => {
       />
 
       <section
+        id="shisha-gallery"
         className="relative bg-black py-16 overflow-hidden"
         itemScope
         itemType="https://schema.org/ImageGallery"

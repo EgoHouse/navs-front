@@ -1,12 +1,12 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight } from 'lucide-react';
+//import { ArrowRight } from 'lucide-react';
 
 const CocktailPersonalizationSection: React.FC = () => {
-  const handlePersonalizeClick = () => {
-    // Por ahora solo muestra una alerta, después será una página de cuestionario
-    alert('Próximamente: Página de personalización de cocktails');
-  };
+  // const handlePersonalizeClick = () => {
+  //   // Por ahora solo muestra una alerta, después será una página de cuestionario
+  //   alert('Próximamente: Página de personalización de cocktails');
+  // };
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -31,7 +31,10 @@ const CocktailPersonalizationSection: React.FC = () => {
   };
 
   return (
-    <section className="relative min-h-screen overflow-hidden bg-black">
+    <section
+      id="cocktails"
+      className="relative min-h-screen overflow-hidden bg-black"
+    >
       {/* Background Image with Parallax Effect */}
       <div className="absolute inset-0">
         <motion.img
@@ -85,7 +88,8 @@ const CocktailPersonalizationSection: React.FC = () => {
               variants={itemVariants}
               className="text-xl md:text-2xl lg:text-3xl text-white/80 mb-12 font-light leading-relaxed max-w-3xl mx-auto"
             >
-              Cada persona tiene su cocktail perfecto. Nosotros lo creamos para ti.
+              Cada persona tiene su cocktail perfecto. Nosotros lo creamos para
+              ti.
               {/*Nuestro sistema de
               personalización encuentra exactamente el que conecta con tu
               esencia. */}
