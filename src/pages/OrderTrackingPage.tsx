@@ -12,7 +12,8 @@ import {
   Phone,
   Mail,
   Calendar,
-  Hash
+  Hash,
+  MapPin
 } from 'lucide-react';
 import { orderService } from '../services/orderService';
 import type { Order } from '../types/order.types';
@@ -334,6 +335,13 @@ const OrderTrackingPage: React.FC = () => {
                           <span className="text-gray-400">Email:</span>
                           <span className="text-white">{order.email}</span>
                         </div>
+                        {order.address && (
+                          <div className="flex items-start gap-3">
+                            <MapPin className="w-5 h-5 text-yellow-400 mt-1" />
+                            <span className="text-gray-400">Dirección:</span>
+                            <span className="text-white">{order.address}</span>
+                          </div>
+                        )}
                         {order.observations && (
                           <div className="flex flex-col gap-2">
                             <span className="text-gray-400">Observaciones:</span>

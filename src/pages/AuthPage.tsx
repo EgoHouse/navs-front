@@ -17,23 +17,37 @@ import {
   UserPlus,
   Shield,
   Phone,
-  MapPin
+  MapPin,
+  CheckCircle,
+  XCircle
 } from 'lucide-react';
 import { useAuthWithServices } from '../hooks/useAuthWithServices';
 import SEOHead from '../components/SEOHead';
+import AddressAutocomplete from '../components/AddressAutocomplete';
+import { 
+  validateEmail, 
+  validateSpanishPhone, 
+  validatePassword, 
+  validateName, 
+  formatSpanishPhone 
+} from '../utils/validation';
 
 type AuthMode = 'login' | 'register';
 type UserType = 'admin' | 'user';
 type Origin = 'home' | 'desayunos' | 'other';
 
-const AuthPage: React.FC = () => {
+interface AuthPageProps {
+  userType: UserType;
+}
+
+const AuthPage: React.FC<AuthPageProps> = ({ userType: propUserType }) => {
   const { login, register, isAuthenticated, isLoading, error, clearError, user } = useAuthWithServices();
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
   
   const [authMode, setAuthMode] = useState<AuthMode>('login');
-  const [userType, setUserType] = useState<UserType>('user');
+  const userType = propUserType; // Usar el prop directamente
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -45,8 +59,11 @@ const AuthPage: React.FC = () => {
     confirmPassword: ''
   });
   const [localErrors, setLocalErrors] = useState<{[key: string]: string}>({});
+  const [passwordStrength, setPasswordStrength] = useState<'weak' | 'medium' | 'strong' | null>(null);
+  const [isValidatingEmail, setIsValidatingEmail] = useState(false);
+  const [isValidatingPhone, setIsValidatingPhone] = useState(false);
 
-  // Detectar origen desde query parameters o location state
+  // Detectar origen desde query parameters o location state para retrocompatibilidad
   const getOrigin = (): Origin => {
     const fromQuery = searchParams.get('from');
     const fromState = location.state?.from?.pathname;
@@ -58,33 +75,32 @@ const AuthPage: React.FC = () => {
 
   const origin = getOrigin();
 
-  // Configurar userType inicial basado en el origen
+  // Asegurar que los admin solo puedan hacer login
   useEffect(() => {
-    if (origin === 'desayunos') {
-      setUserType('user'); // Solo usuario para desayunos
-      setAuthMode('login'); // Forzar modo login para usuario
-    } else {
-      setUserType('admin'); // Solo admin para cualquier otro origen (home, other)
-      setAuthMode('login'); // Forzar modo login para admin
+    if (userType === 'admin') {
+      setAuthMode('login');
     }
-  }, [origin]);
+  }, [userType]);
 
   // Redirigir si ya está autenticado
   useEffect(() => {
     if (isAuthenticated && user) {
       console.log('Usuario autenticado:', user);
 
-      // Determinar dónde redirigir basado en el origen y rol
-      if (origin === 'desayunos') {
-        navigate('/desayunos', { replace: true });
-      } else if (user.role === 'ADMIN') {
-        navigate('/admin', { replace: true });
-      } else {
-        // Usuario normal desde home, ir a desayunos
+      // Determinar dónde redirigir basado en el tipo de auth page y rol del usuario
+      if (userType === 'admin') {
+        if (user.role === 'ADMIN') {
+          navigate('/admin/dashboard', { replace: true });
+        } else {
+          // Usuario normal intentando acceder a admin auth - error
+          console.error('Usuario sin permisos de admin intentando acceder');
+        }
+      } else if (userType === 'user') {
+        // Para auth de usuario, siempre ir a desayunos independientemente del rol
         navigate('/desayunos', { replace: true });
       }
     }
-  }, [isAuthenticated, user, navigate, origin]);
+  }, [isAuthenticated, user, navigate, userType]);
 
   // Limpiar errores cuando cambia el modo
   useEffect(() => {
@@ -95,39 +111,37 @@ const AuthPage: React.FC = () => {
   const validateForm = () => {
     const errors: {[key: string]: string} = {};
 
-    // Validar email
-    if (!formData.email) {
-      errors.email = 'El email es requerido';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      errors.email = 'Email inválido';
+    // Validar email con función mejorada
+    const emailValidation = validateEmail(formData.email);
+    if (!emailValidation.isValid) {
+      errors.email = emailValidation.error!;
     }
 
-    // Validar contraseña
-    if (!formData.password) {
-      errors.password = 'La contraseña es requerida';
-    } else if (formData.password.length < 6) {
-      errors.password = 'La contraseña debe tener al menos 6 caracteres';
+    // Validar contraseña con función mejorada
+    const passwordValidation = validatePassword(formData.password);
+    if (!passwordValidation.isValid) {
+      errors.password = passwordValidation.error!;
     }
 
     // Validaciones específicas para registro
     if (authMode === 'register') {
-      if (!formData.name) {
-        errors.name = 'El nombre es requerido';
-      } else if (formData.name.length < 2) {
-        errors.name = 'El nombre debe tener al menos 2 caracteres';
+      // Validar nombre con función mejorada
+      const nameValidation = validateName(formData.name);
+      if (!nameValidation.isValid) {
+        errors.name = nameValidation.error!;
       }
 
+      // Validar confirmación de contraseña
       if (!formData.confirmPassword) {
         errors.confirmPassword = 'Confirma tu contraseña';
       } else if (formData.password !== formData.confirmPassword) {
         errors.confirmPassword = 'Las contraseñas no coinciden';
       }
 
-      // Validar teléfono (obligatorio)
-      if (!formData.phoneNumber) {
-        errors.phoneNumber = 'El teléfono es requerido';
-      } else if (!/^\+?[\d\s-()]{9,}$/.test(formData.phoneNumber)) {
-        errors.phoneNumber = 'Formato de teléfono inválido';
+      // Validar teléfono español con función mejorada
+      const phoneValidation = validateSpanishPhone(formData.phoneNumber);
+      if (!phoneValidation.isValid) {
+        errors.phoneNumber = phoneValidation.error!;
       }
     }
 
@@ -166,9 +180,39 @@ const AuthPage: React.FC = () => {
   };
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    let processedValue = value;
+
+    // Procesar el valor según el campo
+    if (field === 'phoneNumber') {
+      // Formatear teléfono en tiempo real
+      setIsValidatingPhone(true);
+      setTimeout(() => {
+        setIsValidatingPhone(false);
+      }, 500);
+    } else if (field === 'email') {
+      // Validar email en tiempo real
+      setIsValidatingEmail(true);
+      setTimeout(() => {
+        setIsValidatingEmail(false);
+        if (value) {
+          const emailValidation = validateEmail(value);
+          if (!emailValidation.isValid) {
+            setLocalErrors(prev => ({ ...prev, email: emailValidation.error! }));
+          } else {
+            setLocalErrors(prev => ({ ...prev, email: '' }));
+          }
+        }
+      }, 800);
+    } else if (field === 'password') {
+      // Evaluar fortaleza de contraseña en tiempo real
+      const passwordValidation = validatePassword(value);
+      setPasswordStrength(passwordValidation.strength || null);
+    }
+
+    setFormData(prev => ({ ...prev, [field]: processedValue }));
+    
     // Limpiar error del campo cuando el usuario empiece a escribir
-    if (localErrors[field]) {
+    if (localErrors[field] && field !== 'email') {
       setLocalErrors(prev => ({ ...prev, [field]: '' }));
     }
   };
@@ -182,9 +226,11 @@ const AuthPage: React.FC = () => {
 
 
   const handleBack = () => {
-    if (origin === 'desayunos') {
+    if (userType === 'user') {
+      // Si viene de /auth (usuarios), volver a home
       navigate('/', { replace: true });
-    } else if (origin === 'home') {
+    } else if (userType === 'admin') {
+      // Si viene de /admin (admin auth), volver a home
       navigate('/', { replace: true });
     } else {
       navigate(-1);
@@ -212,17 +258,70 @@ const AuthPage: React.FC = () => {
   );
 
   const getPageTitle = () => {
-    if (origin === 'desayunos') {
+    if (userType === 'user') {
       return authMode === 'login' ? 'Accede para ordenar' : 'Regístrate para ordenar';
+    } else {
+      return 'Acceso Administrativo';
     }
-    return authMode === 'login' ? 'Bienvenido de vuelta' : 'Únete a nosotros';
   };
 
   const getPageDescription = () => {
-    if (origin === 'desayunos') {
-      return 'Necesitas una cuenta para realizar pedidos de desayunos';
+    if (userType === 'user') {
+      return 'Necesitas una cuenta para realizar pedidos';
+    } else {
+      return 'Panel de administración de EGO HOUSE';
     }
-    return 'Accede a tu cuenta de EGO HOUSE';
+  };
+
+  const renderPasswordStrengthIndicator = () => {
+    if (!passwordStrength || !formData.password) return null;
+
+    const strengthConfig = {
+      weak: { color: 'text-red-400', bg: 'bg-red-400', label: 'Débil', width: '33%' },
+      medium: { color: 'text-yellow-400', bg: 'bg-yellow-400', label: 'Media', width: '66%' },
+      strong: { color: 'text-green-400', bg: 'bg-green-400', label: 'Fuerte', width: '100%' }
+    };
+
+    const config = strengthConfig[passwordStrength];
+
+    return (
+      <div className="mt-2">
+        <div className="flex justify-between items-center mb-1">
+          <span className={`text-xs ${config.color}`}>
+            Fortaleza: {config.label}
+          </span>
+        </div>
+        <div className="w-full bg-gray-700 rounded-full h-1.5">
+          <div 
+            className={`h-1.5 rounded-full transition-all duration-300 ${config.bg}`}
+            style={{ width: config.width }}
+          />
+        </div>
+      </div>
+    );
+  };
+
+  const renderValidationIcon = (field: string, isValidating: boolean) => {
+    if (isValidating) {
+      return <Loader2 size={16} className="animate-spin text-yellow-400" />;
+    }
+    
+    if (localErrors[field]) {
+      return <XCircle size={16} className="text-red-400" />;
+    }
+    
+    if (formData[field as keyof typeof formData] && !localErrors[field]) {
+      if (field === 'email') {
+        const validation = validateEmail(formData.email);
+        return validation.isValid ? <CheckCircle size={16} className="text-green-400" /> : null;
+      }
+      if (field === 'phoneNumber' && authMode === 'register') {
+        const validation = validateSpanishPhone(formData.phoneNumber);
+        return validation.isValid ? <CheckCircle size={16} className="text-green-400" /> : null;
+      }
+    }
+    
+    return null;
   };
 
   return (
@@ -374,14 +473,22 @@ const AuthPage: React.FC = () => {
                         type="tel"
                         value={formData.phoneNumber}
                         onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
-                        className={`w-full pl-10 pr-4 py-3 bg-gray-800/50 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-400/50 transition-all ${
+                        className={`w-full pl-10 pr-12 py-3 bg-gray-800/50 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-400/50 transition-all ${
                           localErrors.phoneNumber ? 'border-red-500' : 'border-gray-600 focus:border-yellow-400'
                         }`}
                         placeholder="+34 600 000 000"
                       />
+                      <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                        {renderValidationIcon('phoneNumber', isValidatingPhone)}
+                      </div>
                     </div>
                     {localErrors.phoneNumber && (
                       <p className="text-red-400 text-sm mt-1">{localErrors.phoneNumber}</p>
+                    )}
+                    {!localErrors.phoneNumber && formData.phoneNumber && (
+                      <p className="text-green-400 text-xs mt-1">
+                        ✓ Formato válido: {formatSpanishPhone(formData.phoneNumber)}
+                      </p>
                     )}
                   </div>
                 )}
@@ -392,16 +499,20 @@ const AuthPage: React.FC = () => {
                     <label className="block text-sm font-medium text-gray-300 mb-2">
                       Dirección <span className="text-gray-500">(opcional)</span>
                     </label>
-                    <div className="relative">
-                      <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-                      <input
-                        type="text"
-                        value={formData.address}
-                        onChange={(e) => handleInputChange('address', e.target.value)}
-                        className="w-full pl-10 pr-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-400/50 focus:border-yellow-400 transition-all"
-                        placeholder="Tu dirección (opcional)"
-                      />
-                    </div>
+                    <AddressAutocomplete
+                      value={formData.address}
+                      onChange={(address) => handleInputChange('address', address)}
+                      onSelect={(address, placeId, coordinates) => {
+                        console.log('Dirección seleccionada:', { address, placeId, coordinates });
+                        setFormData(prev => ({ ...prev, address }));
+                      }}
+                      placeholder="Escribe tu dirección en Madrid..."
+                    />
+                    {formData.address && (
+                      <p className="text-gray-400 text-xs mt-1">
+                        💡 Selecciona de las sugerencias para mayor precisión
+                      </p>
+                    )}
                   </div>
                 )}
 
@@ -416,11 +527,14 @@ const AuthPage: React.FC = () => {
                       type="email"
                       value={formData.email}
                       onChange={(e) => handleInputChange('email', e.target.value)}
-                      className={`w-full pl-10 pr-4 py-3 bg-gray-800/50 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-400/50 transition-all ${
+                      className={`w-full pl-10 pr-12 py-3 bg-gray-800/50 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-400/50 transition-all ${
                         localErrors.email ? 'border-red-500' : 'border-gray-600 focus:border-yellow-400'
                       }`}
-                      placeholder={userType === 'admin' ? 'admin@egohouse.com' : 'tu@email.com'}
+                      placeholder='ejemplo@gmail.com'
                     />
+                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                      {renderValidationIcon('email', isValidatingEmail)}
+                    </div>
                   </div>
                   {localErrors.email && (
                     <p className="text-red-400 text-sm mt-1">{localErrors.email}</p>
@@ -454,6 +568,7 @@ const AuthPage: React.FC = () => {
                   {localErrors.password && (
                     <p className="text-red-400 text-sm mt-1">{localErrors.password}</p>
                   )}
+                  {authMode === 'register' && renderPasswordStrengthIndicator()}
                 </div>
 
                 {/* Confirm Password field - solo en registro de usuario */}
@@ -516,8 +631,8 @@ const AuthPage: React.FC = () => {
                 </button>
               </form>
 
-              {/* Mode Switch - Solo para usuarios desde desayunos */}
-              {origin === 'desayunos' && (
+              {/* Mode Switch - Solo para usuarios normales, los admins solo pueden hacer login */}
+              {userType === 'user' && (
                 <div className="mt-6 text-center">
                   <p className="text-gray-400 text-sm">
                     {authMode === 'login' ? '¿No tienes cuenta?' : '¿Ya tienes cuenta?'}
@@ -537,12 +652,15 @@ const AuthPage: React.FC = () => {
                   <strong>
                     {userType === 'admin' 
                       ? 'Acceso exclusivo para administradores'
-                      : origin === 'desayunos'
-                        ? 'Requerido para realizar pedidos'
-                        : 'Accede para realizar pedidos y más'
+                      : 'Requerido para realizar pedidos'
                     }
                   </strong>
                 </p>
+                {userType === 'admin' && (
+                  <p className="text-yellow-400/70 text-xs mt-1 text-center">
+                    Solo inicio de sesión disponible
+                  </p>
+                )}
               </div>
 
               {/* Footer Note */}

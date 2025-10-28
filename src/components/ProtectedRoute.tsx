@@ -36,13 +36,13 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // Redirigir a auth si no está autenticado
   if (!isAuthenticated) {
-    // Si requiere admin, ir a la página principal
+    // Si requiere admin, ir a la página de auth de admin
     if (requireAdmin) {
-      return <Navigate to={redirectTo} state={{ from: location }} replace />;
+      return <Navigate to="/admin" state={{ from: location }} replace />;
     }
-    // Si requiere usuario normal, ir a la página de auth con query param
+    // Si requiere usuario normal, ir a la página de auth de usuarios
     if (requireUser) {
-      return <Navigate to="/auth?from=desayunos" state={{ from: location }} replace />;
+      return <Navigate to="/auth" state={{ from: location }} replace />;
     }
     // Por defecto, ir a donde se especifique
     return <Navigate to={redirectTo} state={{ from: location }} replace />;
@@ -72,7 +72,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // Verificar que tenga token de usuario si es requerido
   if (requireUser && !user) {
-    return <Navigate to="/auth?from=desayunos" state={{ from: location }} replace />;
+    return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
   return <>{children}</>;

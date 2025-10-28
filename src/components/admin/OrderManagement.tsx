@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Package, 
@@ -20,6 +21,8 @@ import {
   ChevronLeft
 } from 'lucide-react';
 import { orderService } from '../../services';
+import { useSuccessMessage } from '../../hooks';
+import SuccessMessage from '../SuccessMessage';
 import type { Order, OrderStats, OrderType } from '../../types';
 import { ORDER_CONFIG, OrderEventStatus } from '../../types/order.types';
 import { EditOrderModal } from './EditOrderModal';
@@ -31,12 +34,13 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
   const [stats, setStats] = useState<OrderStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
-  const [success, setSuccess] = useState<string>('');
+  const { isVisible: successVisible, message: successMessage, showSuccess, hideSuccess } = useSuccessMessage();
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [loadingOrders, setLoadingOrders] = useState<Record<string, string>>({}); // {orderId: 'action'}
   const [refreshing, setRefreshing] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState({
     type: '',
     search: '',
@@ -47,29 +51,171 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(15);
 
-  // Cargar pedidos y estadísticas
-  useEffect(() => {
-    loadOrders();
-    loadStats();
-  }, [filters]);
+  // Función para filtrar pedidos del lado del cliente
+  const filterOrders = useCallback((ordersToFilter: Order[]) => {
+    let filteredOrders = [...ordersToFilter];
 
-  // Resetear página cuando cambien los filtros
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [filters]);
+    // Filtro por término de búsqueda
+    if (searchTerm && searchTerm.trim()) {
+      const searchLower = searchTerm.toLowerCase().trim();
+      filteredOrders = filteredOrders.filter(order => {
+        const matchesSearch = 
+          order.name.toLowerCase().includes(searchLower) ||
+          order.email.toLowerCase().includes(searchLower) ||
+          order.phone.toLowerCase().includes(searchLower) ||
+          (order.address && order.address.toLowerCase().includes(searchLower)) ||
+          (order.trackingNumber && order.trackingNumber.toLowerCase().includes(searchLower));
+        
+        return matchesSearch;
+      });
+    }
 
-  const loadOrders = async () => {
+    // Filtro por tipo
+    if (filters.type && filters.type !== '') {
+      filteredOrders = filteredOrders.filter(order => order.type === filters.type);
+    }
+
+    // Filtro por estado
+    if (filters.status && filters.status !== '') {
+      filteredOrders = filteredOrders.filter(order => order.status === filters.status);
+    }
+
+    // Filtro por fecha de inicio
+    if (filters.startDate && filters.startDate !== '') {
+      const startDate = new Date(filters.startDate);
+      startDate.setHours(0, 0, 0, 0); // Inicio del día
+      filteredOrders = filteredOrders.filter(order => {
+        const orderDate = new Date(order.createdAt);
+        return orderDate >= startDate;
+      });
+    }
+
+    // Filtro por fecha de fin
+    if (filters.endDate && filters.endDate !== '') {
+      const endDate = new Date(filters.endDate);
+      endDate.setHours(23, 59, 59, 999); // Final del día
+      filteredOrders = filteredOrders.filter(order => {
+        const orderDate = new Date(order.createdAt);
+        return orderDate <= endDate;
+      });
+    }
+
+    return filteredOrders;
+  }, [searchTerm, filters]);
+
+  // Estado para guardar todos los pedidos (sin filtrar)
+  const [allOrders, setAllOrders] = useState<Order[]>([]);
+
+  // Función para cargar pedidos
+  const loadOrders = useCallback(async (showLoading = false) => {
     try {
-      setLoading(true);
+      if (showLoading) {
+        setLoading(true);
+      }
       setError('');
-      const data = await orderService.getAllOrders(filters);
-      setOrders(data);
+      
+      // Por ahora, cargamos todos los pedidos y filtramos del lado del cliente
+      // para asegurar que el filtrado funcione correctamente
+      const data = await orderService.getAllOrders();
+      
+      // Guardar todos los pedidos para referencia
+      setAllOrders(data);
+      
+      // Aplicar filtros del lado del cliente
+      const filteredData = filterOrders(data);
+      
+      // Ordenar por fecha de creación (más recientes primero)
+      const sortedData = filteredData.sort((a, b) => {
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      });
+      
+      setOrders(sortedData);
     } catch (error: any) {
       setError(error.message || 'Error al cargar pedidos');
     } finally {
-      setLoading(false);
+      if (showLoading) {
+        setLoading(false);
+      }
     }
-  };
+  }, [filterOrders]);
+
+  // Cargar pedidos y estadísticas al montar el componente
+  useEffect(() => {
+    const initialLoad = async () => {
+      try {
+        setLoading(true);
+        setError('');
+        await Promise.all([loadOrders(false), loadStats()]);
+      } catch (error: any) {
+        setError(error.message || 'Error al cargar datos');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    initialLoad();
+  }, [loadOrders]);
+
+  // Debounce para el término de búsqueda
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setFilters(prev => ({ ...prev, search: searchTerm }));
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchTerm]);
+
+  // Resetear página cuando cambien los filtros y recargar pedidos
+  useEffect(() => {
+    setCurrentPage(1);
+    loadOrders(false);
+  }, [filters, loadOrders]);
+
+  // Bloquear scroll del body cuando algún modal esté abierto
+  useEffect(() => {
+    const isModalOpen = selectedOrder || isEditModalOpen || isDeleteModalOpen;
+    
+    if (isModalOpen) {
+      // Prevenir scroll del body agregando overflow hidden
+      document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+    } else {
+      // Restaurar el scroll
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+    }
+
+    // Cleanup al desmontar
+    return () => {
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+    };
+  }, [selectedOrder, isEditModalOpen, isDeleteModalOpen]);
+
+  // Manejar tecla Escape para cerrar modales
+  useEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        if (isDeleteModalOpen) {
+          setIsDeleteModalOpen(false);
+          setSelectedOrder(null);
+        } else if (isEditModalOpen) {
+          setIsEditModalOpen(false);
+          setSelectedOrder(null);
+        } else if (selectedOrder) {
+          setSelectedOrder(null);
+        }
+      }
+    };
+
+    if (selectedOrder || isEditModalOpen || isDeleteModalOpen) {
+      document.addEventListener('keydown', handleEscape);
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [selectedOrder, isEditModalOpen, isDeleteModalOpen]);
 
   const loadStats = async () => {
     try {
@@ -84,7 +230,7 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
     try {
       setRefreshing(true);
       setError('');
-      await Promise.all([loadOrders(), loadStats()]);
+      await Promise.all([loadOrders(false), loadStats()]);
       showMessage('Pedidos actualizados correctamente');
     } catch (error: any) {
       showMessage(error.message || 'Error al actualizar pedidos', true);
@@ -98,8 +244,7 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
       setError(message);
       setTimeout(() => setError(''), 5000);
     } else {
-      setSuccess(message);
-      setTimeout(() => setSuccess(''), 3000);
+      showSuccess(message);
     }
   };
 
@@ -154,7 +299,7 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
         await orderService.closeOrder(order.id);
         showMessage('Pedido cerrado exitosamente');
       }
-      loadOrders(); // Recargar pedidos
+      loadOrders(false); // Recargar pedidos
     } catch (error: any) {
       showMessage(error.message || 'Error al cambiar estado del pedido', true);
     } finally {
@@ -192,7 +337,7 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
         showMessage('Estado del evento avanzado exitosamente');
       }
       
-      loadOrders(); // Recargar pedidos
+      loadOrders(false); // Recargar pedidos
     } catch (error: any) {
       showMessage(error.message || 'Error al avanzar el estado del evento', true);
     } finally {
@@ -211,7 +356,7 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
       await orderService.advanceOrderEventStatus(order.id, OrderEventStatus.RECIBIDO);
       
       showMessage('Pedido iniciado exitosamente');
-      loadOrders(); // Recargar pedidos
+      loadOrders(false); // Recargar pedidos
     } catch (error: any) {
       showMessage(error.message || 'Error al iniciar el pedido', true);
     } finally {
@@ -314,6 +459,43 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
     }
   };
 
+  const clearFilters = () => {
+    setSearchTerm('');
+    setFilters({
+      type: '',
+      search: '',
+      startDate: '',
+      endDate: '',
+      status: ''
+    });
+  };
+
+  // Componente Modal para centrar correctamente en el viewport
+  const Modal: React.FC<{ isOpen: boolean; onClose: () => void; children: React.ReactNode }> = ({ isOpen, onClose, children }) => {
+    if (!isOpen) return null;
+    
+    return createPortal(
+      <div 
+        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+        style={{ 
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          zIndex: 9999
+        }}
+      >
+        <div
+          className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+          onClick={onClose}
+        />
+        {children}
+      </div>,
+      document.body
+    );
+  };
+
   // Messages Component
   const renderMessages = () => (
     <>
@@ -331,19 +513,15 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
         )}
       </AnimatePresence>
 
-      <AnimatePresence>
-        {success && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="mb-6 p-4 bg-green-500/10 border border-green-500/20 rounded-lg flex items-center space-x-3"
-          >
-            <CheckCircle className="text-green-400" size={20} />
-            <span className="text-green-400">{success}</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <div className="mb-6">
+        <SuccessMessage
+          message={successMessage}
+          isVisible={successVisible}
+          onClose={hideSuccess}
+          size="md"
+          position="relative"
+        />
+      </div>
     </>
   );
 
@@ -412,7 +590,12 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
           <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-400">Pedidos Abiertos</p>
+                <p className="text-sm font-medium text-gray-400">
+                  {(searchTerm || filters.type || filters.status || filters.startDate || filters.endDate) 
+                    ? 'Abiertos (filtrados)' 
+                    : 'Pedidos Abiertos'
+                  }
+                </p>
                 <p className="text-2xl font-bold text-white">
                   {orders.filter(order => order.status !== 'closed').length}
                 </p>
@@ -424,7 +607,12 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
           <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-400">Pedidos Cerrados</p>
+                <p className="text-sm font-medium text-gray-400">
+                  {(searchTerm || filters.type || filters.status || filters.startDate || filters.endDate) 
+                    ? 'Cerrados (filtrados)' 
+                    : 'Pedidos Cerrados'
+                  }
+                </p>
                 <p className="text-2xl font-bold text-white">
                   {orders.filter(order => order.status === 'closed').length}
                 </p>
@@ -442,6 +630,24 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
         transition={{ delay: 0.1 }}
         className="bg-gray-800/50 border border-gray-700 rounded-lg p-6"
       >
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h4 className="text-lg font-semibold text-white">Filtros</h4>
+            {(searchTerm || filters.type || filters.status || filters.startDate || filters.endDate) && (
+              <p className="text-sm text-gray-400 mt-1">
+                Filtros activos • Mostrando {orders.length} de {allOrders.length} pedidos
+              </p>
+            )}
+          </div>
+          {(searchTerm || filters.type || filters.status || filters.startDate || filters.endDate) && (
+            <button
+              onClick={clearFilters}
+              className="px-3 py-1 text-sm bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 hover:text-white transition-colors"
+            >
+              Limpiar filtros
+            </button>
+          )}
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
@@ -453,8 +659,8 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
                 type="text"
                 placeholder="Buscar por nombre, email..."
                 className="w-full pl-10 pr-4 py-2 bg-gray-900 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400"
-                value={filters.search}
-                onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
           </div>
@@ -469,6 +675,7 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
               onChange={(e) => setFilters({ ...filters, status: e.target.value })}
             >
               <option value="">Todos los estados</option>
+              <option value="pending">Pendientes</option>
               <option value="open">Abiertos</option>
               <option value="closed">Cerrados</option>
             </select>
@@ -530,8 +737,16 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
               <h4 className="text-xl font-bold text-white">Pedidos</h4>
               <p className="text-gray-400 text-sm">
                 {totalOrders} pedidos encontrados
+                {allOrders.length > 0 && totalOrders !== allOrders.length && (
+                  <span className="text-gray-500"> de {allOrders.length} totales</span>
+                )}
                 {totalOrders > 0 && (
                   <> • Mostrando {startIndex + 1}-{Math.min(endIndex, totalOrders)} de {totalOrders}</>
+                )}
+                {(searchTerm || filters.type || filters.status || filters.startDate || filters.endDate) && (
+                  <span className="ml-2 inline-flex items-center px-2 py-1 text-xs bg-yellow-500/20 text-yellow-400 rounded-full">
+                    Con filtros
+                  </span>
                 )}
               </p>
             </div>
@@ -541,8 +756,26 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
         {orders.length === 0 ? (
           <div className="text-center py-20 text-gray-500">
             <Package size={48} className="mx-auto mb-4 opacity-50" />
-            <h3 className="text-xl font-semibold mb-2">No hay pedidos</h3>
-            <p>No se encontraron pedidos con los filtros aplicados</p>
+            <h3 className="text-xl font-semibold mb-2">
+              {(searchTerm || filters.type || filters.status || filters.startDate || filters.endDate) 
+                ? 'No se encontraron pedidos' 
+                : 'No hay pedidos'
+              }
+            </h3>
+            <p>
+              {(searchTerm || filters.type || filters.status || filters.startDate || filters.endDate) 
+                ? 'No se encontraron pedidos con los filtros aplicados' 
+                : 'Aún no se han realizado pedidos'
+              }
+            </p>
+            {(searchTerm || filters.type || filters.status || filters.startDate || filters.endDate) && (
+              <button
+                onClick={clearFilters}
+                className="mt-4 px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors"
+              >
+                Limpiar filtros
+              </button>
+            )}
           </div>
         ) : (
           <div className="grid gap-4">
@@ -613,7 +846,7 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
                     )}
                   </div>
                   
-                  <div className="flex items-center space-x-2 ml-4 opacity-0 group-hover:opacity-100 transition-all">
+                  <div className="flex items-center space-x-2 ml-4 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all">
                     <button
                       onClick={() => setSelectedOrder(order)}
                       disabled={isOrderLoading(order.id)}
@@ -766,22 +999,17 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
       </motion.div>
 
       {/* Modal de detalles del pedido */}
-      <AnimatePresence>
-        {selectedOrder && !isEditModalOpen && !isDeleteModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
-              onClick={() => setSelectedOrder(null)}
-            />
-            
+      <Modal 
+        isOpen={selectedOrder !== null && !isEditModalOpen && !isDeleteModalOpen} 
+        onClose={() => setSelectedOrder(null)}
+      >
+        <AnimatePresence>
+          {selectedOrder && !isEditModalOpen && !isDeleteModalOpen && (
             <motion.div
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="relative w-full max-w-2xl bg-gray-900 rounded-xl border border-gray-700 p-6 shadow-2xl max-h-[90vh] overflow-y-auto"
+              className="relative w-full max-w-2xl bg-gray-900 rounded-xl border border-gray-700 p-6 shadow-2xl max-h-[90vh] overflow-y-auto z-10"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between mb-6">
@@ -897,9 +1125,9 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
                 )}
               </div>
             </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+          )}
+        </AnimatePresence>
+      </Modal>
 
       {/* Modal de edición */}
       {selectedOrder && (
@@ -911,32 +1139,27 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
             setSelectedOrder(null);
           }}
           onUpdate={() => {
-            loadOrders();
+            loadOrders(false);
             loadStats();
           }}
         />
       )}
 
       {/* Modal de confirmación de eliminación */}
-      <AnimatePresence>
-        {isDeleteModalOpen && selectedOrder && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
-              onClick={() => {
-                setIsDeleteModalOpen(false);
-                setSelectedOrder(null);
-              }}
-            />
-            
+      <Modal 
+        isOpen={isDeleteModalOpen && selectedOrder !== null} 
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setSelectedOrder(null);
+        }}
+      >
+        <AnimatePresence>
+          {isDeleteModalOpen && selectedOrder && (
             <motion.div
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="relative w-full max-w-md bg-gray-900 rounded-xl border border-gray-700 p-6 shadow-2xl"
+              className="relative w-full max-w-md bg-gray-900 rounded-xl border border-gray-700 p-6 shadow-2xl z-10"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between mb-4">
@@ -1005,9 +1228,9 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
                 </button>
               </div>
             </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+          )}
+        </AnimatePresence>
+      </Modal>
     </div>
   );
 };

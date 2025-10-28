@@ -28,8 +28,11 @@ function App() {
           <Route path="/tracking" element={<OrderTrackingPage />} />
           <Route path="/tracking/:trackingNumber" element={<OrderTrackingPage />} />
           
-          {/* Ruta de autenticación - detección automática por query params */}
-          <Route path="/auth" element={<AuthPage />} />
+          {/* Ruta de autenticación para usuarios normales */}
+          <Route path="/auth" element={<AuthPage userType="user" />} />
+
+          {/* Ruta de autenticación para administradores */}
+          <Route path="/admin" element={<AuthPage userType="admin" />} />
 
           {/* Rutas protegidas para usuarios normales */}
           <Route 
@@ -41,9 +44,9 @@ function App() {
             } 
           />
 
-          {/* Rutas protegidas - requieren autenticación */}
+          {/* Rutas protegidas - requieren autenticación de admin */}
           <Route 
-            path="/admin" 
+            path="/admin/dashboard" 
             element={
               <ProtectedRoute requireAdmin={true}>
                 <AdminDashboard />

@@ -7,12 +7,13 @@ import {
   X,
   Loader2,
   AlertTriangle,
-  CheckCircle,
   UtensilsCrossed,
   Upload,
   Edit
 } from 'lucide-react';
 import { CatalogService } from '../../services';
+import { useSuccessMessage } from '../../hooks';
+import SuccessMessage from '../SuccessMessage';
 import type { 
   Category, 
   AddItemRequest, 
@@ -31,7 +32,7 @@ const MenuManagement: React.FC<MenuManagementProps> = ({ }) => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
-  const [success, setSuccess] = useState<string>('');
+  const { isVisible: successVisible, message: successMessage, showSuccess, hideSuccess } = useSuccessMessage();
   
   // Modal states
   const [modalType, setModalType] = useState<ModalType>(null);
@@ -71,6 +72,14 @@ const MenuManagement: React.FC<MenuManagementProps> = ({ }) => {
   
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+  // Autocomplete states
+  const [showSubcategoryDropdown, setShowSubcategoryDropdown] = useState(false);
+  const [showSubsectionDropdown, setShowSubsectionDropdown] = useState(false);
+  const [validationErrors, setValidationErrors] = useState({
+    subcategory: '',
+    subsection: ''
+  });
 
   // Load categories on mount
   useEffect(() => {
@@ -139,6 +148,13 @@ const MenuManagement: React.FC<MenuManagementProps> = ({ }) => {
     };
   }, [modalType]);
 
+  // Validate form fields when they change
+  useEffect(() => {
+    if (selectedCategoryId && (itemForm.subcategoryName || itemForm.subsectionName)) {
+      updateValidationErrors();
+    }
+  }, [selectedCategoryId, itemForm.subcategoryName, itemForm.subsectionName]);
+
   const loadCategories = async () => {
     try {
       setLoading(true);
@@ -157,9 +173,67 @@ const MenuManagement: React.FC<MenuManagementProps> = ({ }) => {
       setError(message);
       setTimeout(() => setError(''), 5000);
     } else {
-      setSuccess(message);
-      setTimeout(() => setSuccess(''), 3000);
+      showSuccess(message);
     }
+  };
+
+  // Get available subcategories for a category
+  const getAvailableSubcategories = (categoryId: string): string[] => {
+    const category = categories.find(cat => cat.id === categoryId);
+    if (!category || !category.subcategories) return [];
+    return category.subcategories.map(sub => sub.name);
+  };
+
+  // Get available subsections for a subcategory
+  const getAvailableSubsections = (categoryId: string, subcategoryName: string): string[] => {
+    const category = categories.find(cat => cat.id === categoryId);
+    if (!category || !category.subcategories) return [];
+    
+    const subcategory = category.subcategories.find(sub => sub.name === subcategoryName);
+    if (!subcategory || !subcategory.subsections) return [];
+    
+    return subcategory.subsections.map(subsec => subsec.name);
+  };
+
+  // Filter options based on search
+  const filterOptions = (options: string[], search: string): string[] => {
+    if (!search.trim()) return options;
+    return options.filter(option => 
+      option.toLowerCase().includes(search.toLowerCase())
+    );
+  };
+
+  // Validate if subcategory exists
+  const validateSubcategory = (categoryId: string, subcategoryName: string): boolean => {
+    const availableSubcategories = getAvailableSubcategories(categoryId);
+    return availableSubcategories.includes(subcategoryName);
+  };
+
+  // Validate if subsection exists
+  const validateSubsection = (categoryId: string, subcategoryName: string, subsectionName: string): boolean => {
+    if (!subcategoryName || !subsectionName) return true; // Subsection is optional
+    const availableSubsections = getAvailableSubsections(categoryId, subcategoryName);
+    return availableSubsections.includes(subsectionName);
+  };
+
+  // Handle validation errors
+  const updateValidationErrors = () => {
+    const errors = { subcategory: '', subsection: '' };
+    
+    if (selectedCategoryId && itemForm.subcategoryName && itemForm.subcategoryName !== 'General') {
+      if (!validateSubcategory(selectedCategoryId, itemForm.subcategoryName)) {
+        errors.subcategory = 'Esta subcategoría no existe en la categoría seleccionada';
+      }
+    }
+    
+    if (selectedCategoryId && itemForm.subcategoryName && itemForm.subsectionName) {
+      if (!validateSubsection(selectedCategoryId, itemForm.subcategoryName, itemForm.subsectionName)) {
+        errors.subsection = 'Esta subsección no existe en la subcategoría seleccionada';
+      }
+    }
+    
+    setValidationErrors(errors);
+    return !errors.subcategory && !errors.subsection;
   };
 
 
@@ -171,9 +245,20 @@ const MenuManagement: React.FC<MenuManagementProps> = ({ }) => {
     setSelectedImage(null);
     setImagePreview(null);
     setModalType('item');
+    
+    // Reset autocomplete states
+    setShowSubcategoryDropdown(false);
+    setShowSubsectionDropdown(false);
+    setValidationErrors({ subcategory: '', subsection: '' });
   };
 
   const saveItemHandler = async () => {
+    // Validar antes de enviar
+    if (!updateValidationErrors()) {
+      showMessage('Por favor corrige los errores de validación', true);
+      return;
+    }
+
     try {
       setLoading(true);
       
@@ -222,6 +307,11 @@ const MenuManagement: React.FC<MenuManagementProps> = ({ }) => {
     setSelectedImage(null);
     setImagePreview(null);
     setModalType('editItem');
+
+    // Reset autocomplete states
+    setShowSubcategoryDropdown(false);
+    setShowSubsectionDropdown(false);
+    setValidationErrors({ subcategory: '', subsection: '' });
   };
 
   const openEditSubcategoryModal = (categoryId: string, subcategoryName: string) => {
@@ -238,6 +328,12 @@ const MenuManagement: React.FC<MenuManagementProps> = ({ }) => {
 
   const saveEditItemHandler = async () => {
     if (!editingItem) return;
+
+    // Validar antes de enviar
+    if (!updateValidationErrors()) {
+      showMessage('Por favor corrige los errores de validación', true);
+      return;
+    }
 
     try {
       setLoading(true);
@@ -341,6 +437,11 @@ const MenuManagement: React.FC<MenuManagementProps> = ({ }) => {
     setEditingSubcategory(null);
     setEditingSubsection(null);
     setNameForm({ newName: '' });
+
+    // Reset autocomplete states
+    setShowSubcategoryDropdown(false);
+    setShowSubsectionDropdown(false);
+    setValidationErrors({ subcategory: '', subsection: '' });
   };
 
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -379,6 +480,189 @@ const MenuManagement: React.FC<MenuManagementProps> = ({ }) => {
     setImagePreview(null);
   };
 
+  // Autocomplete component
+  const AutocompleteInput: React.FC<{
+    label: string;
+    value: string;
+    onChange: (value: string) => void;
+    options: string[];
+    placeholder: string;
+    error?: string;
+    required?: boolean;
+    onFocus?: () => void;
+    onBlur?: () => void;
+    showDropdown: boolean;
+    onToggleDropdown: (show: boolean) => void;
+  }> = ({ 
+    label, 
+    value, 
+    onChange, 
+    options, 
+    placeholder, 
+    error, 
+    required = false,
+    showDropdown,
+    onToggleDropdown
+  }) => {
+    const filteredOptions = filterOptions(options, value);
+    const inputRef = React.useRef<HTMLInputElement>(null);
+    const containerRef = React.useRef<HTMLDivElement>(null);
+    const blurTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const newValue = e.target.value;
+      onChange(newValue);
+      
+      // Keep focus on input after value change
+      setTimeout(() => {
+        if (inputRef.current && document.activeElement !== inputRef.current) {
+          inputRef.current.focus();
+        }
+      }, 0);
+      
+      if (filteredOptions.length > 0) {
+        onToggleDropdown(true);
+      }
+    };
+
+    const handleOptionSelect = (option: string) => {
+      onChange(option);
+      onToggleDropdown(false);
+      
+      // Ensure input keeps focus after selection
+      setTimeout(() => {
+        if (inputRef.current) {
+          inputRef.current.focus();
+        }
+      }, 0);
+    };
+
+    const handleInputFocus = () => {
+      if (blurTimeoutRef.current) {
+        clearTimeout(blurTimeoutRef.current);
+        blurTimeoutRef.current = null;
+      }
+      if (filteredOptions.length > 0) {
+        onToggleDropdown(true);
+      }
+    };
+
+    const handleInputBlur = (e: React.FocusEvent) => {
+      // Clear any existing timeout
+      if (blurTimeoutRef.current) {
+        clearTimeout(blurTimeoutRef.current);
+      }
+      
+      // Set a timeout to close dropdown if focus leaves the container
+      blurTimeoutRef.current = setTimeout(() => {
+        // Check if the new focused element is within our container
+        const relatedTarget = e.relatedTarget as Node;
+        if (!containerRef.current?.contains(relatedTarget)) {
+          onToggleDropdown(false);
+        }
+        blurTimeoutRef.current = null;
+      }, 150);
+    };
+
+    const handleContainerMouseDown = (e: React.MouseEvent) => {
+      // Prevent the input from losing focus when clicking on dropdown options
+      const target = e.target as HTMLElement;
+      if (target !== inputRef.current && target.tagName === 'BUTTON') {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    };
+
+    // Cleanup timeout on unmount
+    React.useEffect(() => {
+      return () => {
+        if (blurTimeoutRef.current) {
+          clearTimeout(blurTimeoutRef.current);
+        }
+      };
+    }, []);
+
+    // Maintain focus when value changes externally
+    React.useEffect(() => {
+      if (showDropdown && inputRef.current && document.activeElement !== inputRef.current) {
+        inputRef.current.focus();
+      }
+    }, [value, showDropdown]);
+
+    // Handle click outside to close dropdown
+    React.useEffect(() => {
+      const handleClickOutside = (event: MouseEvent) => {
+        if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+          onToggleDropdown(false);
+        }
+      };
+
+      if (showDropdown) {
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+          document.removeEventListener('mousedown', handleClickOutside);
+        };
+      }
+    }, [showDropdown, onToggleDropdown]);
+
+    return (
+      <div ref={containerRef} className="relative" onMouseDown={handleContainerMouseDown}>
+        <label className="block text-sm font-medium text-gray-300 mb-2">
+          {label} {required && <span className="text-red-400">*</span>}
+        </label>
+        <div className="relative">
+          <input
+            ref={inputRef}
+            type="text"
+            value={value}
+            onChange={handleInputChange}
+            onFocus={handleInputFocus}
+            onBlur={handleInputBlur}
+            className={`w-full px-3 py-2 bg-gray-800 border rounded-lg text-white focus:outline-none focus:ring-1 transition-colors ${
+              error 
+                ? 'border-red-500 focus:border-red-400 focus:ring-red-400' 
+                : 'border-gray-600 focus:border-yellow-400 focus:ring-yellow-400'
+            }`}
+            placeholder={placeholder}
+          />
+          
+          {showDropdown && filteredOptions.length > 0 && (
+            <div className="absolute z-50 w-full mt-1 bg-gray-800 border border-gray-600 rounded-lg shadow-lg max-h-40 overflow-y-auto">
+              {filteredOptions.map((option, index) => (
+                <button
+                  key={index}
+                  type="button"
+                  onMouseDown={(e) => {
+                    e.preventDefault(); // Prevent input blur
+                    e.stopPropagation(); // Stop event bubbling
+                  }}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleOptionSelect(option);
+                  }}
+                  className="w-full px-3 py-2 text-left text-white hover:bg-gray-700 transition-colors first:rounded-t-lg last:rounded-b-lg"
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+        
+        {error && (
+          <p className="mt-1 text-sm text-red-400">{error}</p>
+        )}
+        
+        {options.length > 0 && !error && (
+          <p className="mt-1 text-xs text-gray-500">
+            Opciones disponibles: {options.join(', ')}
+          </p>
+        )}
+      </div>
+    );
+  };
+
   const renderMessages = () => (
     <>
       <AnimatePresence>
@@ -395,19 +679,15 @@ const MenuManagement: React.FC<MenuManagementProps> = ({ }) => {
         )}
       </AnimatePresence>
 
-      <AnimatePresence>
-        {success && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="mb-6 p-4 bg-green-500/10 border border-green-500/20 rounded-lg flex items-center space-x-3"
-          >
-            <CheckCircle className="text-green-400" size={20} />
-            <span className="text-green-400">{success}</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <div className="mb-6">
+        <SuccessMessage
+          message={successMessage}
+          isVisible={successVisible}
+          onClose={hideSuccess}
+          size="md"
+          position="relative"
+        />
+      </div>
     </>
   );
 
@@ -417,7 +697,7 @@ const MenuManagement: React.FC<MenuManagementProps> = ({ }) => {
     const modalContent = (
       <AnimatePresence>
         {modalType === 'item' && (
-          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-9999 flex items-center justify-center p-4">
             {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
@@ -432,7 +712,7 @@ const MenuManagement: React.FC<MenuManagementProps> = ({ }) => {
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="relative w-full max-w-lg bg-gray-900 rounded-xl border border-gray-700 p-6 shadow-2xl max-h-[90vh] overflow-y-auto"
+              className="relative w-full max-w-2xl bg-gray-900 rounded-xl border border-gray-700 p-6 shadow-2xl max-h-[90vh] overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between mb-4">
@@ -465,31 +745,31 @@ const MenuManagement: React.FC<MenuManagementProps> = ({ }) => {
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Subcategoría
-                  </label>
-                  <input
-                    type="text"
-                    value={itemForm.subcategoryName}
-                    onChange={(e) => setItemForm(prev => ({ ...prev, subcategoryName: e.target.value }))}
-                    className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400"
-                    placeholder="General"
-                  />
-                </div>
+                <AutocompleteInput
+                  label="Subcategoría"
+                  value={itemForm.subcategoryName}
+                  onChange={(value) => {
+                    setItemForm(prev => ({ ...prev, subcategoryName: value }));
+                  }}
+                  options={getAvailableSubcategories(selectedCategoryId)}
+                  placeholder="General"
+                  error={validationErrors.subcategory}
+                  showDropdown={showSubcategoryDropdown}
+                  onToggleDropdown={setShowSubcategoryDropdown}
+                />
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Subsección <span className="text-gray-500 text-xs">(opcional)</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={itemForm.subsectionName}
-                    onChange={(e) => setItemForm(prev => ({ ...prev, subsectionName: e.target.value }))}
-                    className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400"
-                    placeholder="Deja vacío si no hay subsección"
-                  />
-                </div>
+                <AutocompleteInput
+                  label="Subsección"
+                  value={itemForm.subsectionName}
+                  onChange={(value) => {
+                    setItemForm(prev => ({ ...prev, subsectionName: value }));
+                  }}
+                  options={getAvailableSubsections(selectedCategoryId, itemForm.subcategoryName || 'General')}
+                  placeholder="Deja vacío si no hay subsección"
+                  error={validationErrors.subsection}
+                  showDropdown={showSubsectionDropdown}
+                  onToggleDropdown={setShowSubsectionDropdown}
+                />
 
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
@@ -574,7 +854,7 @@ const MenuManagement: React.FC<MenuManagementProps> = ({ }) => {
                   </button>
                   <button
                     onClick={saveItemHandler}
-                    disabled={loading || !itemForm.name || !itemForm.price}
+                    disabled={loading || !itemForm.name || !itemForm.price || !!validationErrors.subcategory || !!validationErrors.subsection}
                     className="flex-1 px-4 py-2 bg-yellow-400 text-black rounded-lg hover:bg-yellow-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                   >
                     {loading ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}
@@ -595,7 +875,7 @@ const MenuManagement: React.FC<MenuManagementProps> = ({ }) => {
     const modalContent = (
       <AnimatePresence>
         {modalType === 'editItem' && (
-          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-9999 flex items-center justify-center p-4">
             {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
@@ -610,7 +890,7 @@ const MenuManagement: React.FC<MenuManagementProps> = ({ }) => {
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="relative w-full max-w-lg bg-gray-900 rounded-xl border border-gray-700 p-6 shadow-2xl max-h-[90vh] overflow-y-auto"
+              className="relative w-full max-w-2xl bg-gray-900 rounded-xl border border-gray-700 p-6 shadow-2xl max-h-[90vh] overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between mb-4">
@@ -743,7 +1023,7 @@ const MenuManagement: React.FC<MenuManagementProps> = ({ }) => {
     const modalContent = (
       <AnimatePresence>
         {(modalType === 'editSubcategory' || modalType === 'editSubsection') && (
-          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-9999 flex items-center justify-center p-4">
             {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
@@ -878,7 +1158,7 @@ const MenuManagement: React.FC<MenuManagementProps> = ({ }) => {
                     <h5 className="text-lg font-semibold text-white">{subcategory.name}</h5>
                     <button
                       onClick={() => openEditSubcategoryModal(category.id, subcategory.name)}
-                      className="p-1 text-yellow-400 hover:bg-yellow-500/10 rounded opacity-0 group-hover:opacity-100 transition-all"
+                      className="p-1 text-yellow-400 hover:bg-yellow-500/10 rounded opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all"
                       title="Editar subcategoría"
                     >
                       <Edit size={16} />
@@ -887,7 +1167,7 @@ const MenuManagement: React.FC<MenuManagementProps> = ({ }) => {
                   
                   {/* Renderizar items directos de la subcategoría */}
                   {subcategory.items && subcategory.items.length > 0 && (
-                    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-4">
+                    <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 mb-4">
                       {subcategory.items.map((item) => (
                         <div
                           key={item.name}
@@ -913,7 +1193,7 @@ const MenuManagement: React.FC<MenuManagementProps> = ({ }) => {
                               </div>
                             </div>
                             
-                            <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-all">
+                            <div className="flex items-center space-x-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all">
                               <button
                                 onClick={() => openEditItemModal(category.id, subcategory.name, undefined, item)}
                                 className="p-1 text-blue-400 hover:bg-blue-500/10 rounded"
@@ -942,7 +1222,7 @@ const MenuManagement: React.FC<MenuManagementProps> = ({ }) => {
                         <h6 className="text-md font-medium text-blue-300">{subsection.name}</h6>
                         <button
                           onClick={() => openEditSubsectionModal(category.id, subcategory.name, subsection.name)}
-                          className="p-1 text-blue-400 hover:bg-blue-500/10 rounded opacity-0 group-hover:opacity-100 transition-all"
+                          className="p-1 text-blue-400 hover:bg-blue-500/10 rounded opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all"
                           title="Editar subsección"
                         >
                           <Edit size={14} />
@@ -950,7 +1230,7 @@ const MenuManagement: React.FC<MenuManagementProps> = ({ }) => {
                       </div>
                       
                       {subsection.items && subsection.items.length > 0 ? (
-                        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                        <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                           {subsection.items.map((item) => (
                             <div
                               key={item.name}
@@ -977,7 +1257,7 @@ const MenuManagement: React.FC<MenuManagementProps> = ({ }) => {
                                   </div>
                                 </div>
                                 
-                                <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-all">
+                                <div className="flex items-center space-x-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all">
                                   <button
                                     onClick={() => openEditItemModal(category.id, subcategory.name, subsection.name, item)}
                                     className="p-1 text-blue-400 hover:bg-blue-500/10 rounded"

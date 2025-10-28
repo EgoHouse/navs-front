@@ -17,5 +17,8 @@ export {
   useAdminOperations,
 } from './useAdmin';
 
+// Re-exportar hook de mensajes de éxito
+export { useSuccessMessage } from './useSuccessMessage';
+
 // Hook genérico para operaciones async
 // export { useAsync, useLazyAsync } from './useAsync';

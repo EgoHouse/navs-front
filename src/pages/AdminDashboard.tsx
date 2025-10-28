@@ -33,7 +33,7 @@ const AdminDashboard: React.FC = () => {
   };
 
   const renderHeader = () => (
-    <div className="bg-gray-900/95 backdrop-blur-lg border-b border-gray-700/50 p-6">
+    <div className="fixed top-0 left-0 right-0 z-50 bg-gray-900/95 backdrop-blur-lg border-b border-gray-700/50 p-6">
       <div className="max-w-6xl mx-auto flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-3">
@@ -64,7 +64,7 @@ const AdminDashboard: React.FC = () => {
   );
 
   const renderMainMenu = () => (
-    <div className="min-h-screen bg-gray-950 pt-20">
+    <div className="min-h-screen bg-gray-950 pt-20 mt-4">
       <div className="max-w-4xl mx-auto p-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -205,7 +205,7 @@ const AdminDashboard: React.FC = () => {
   );
 
   const renderMenuManagement = () => (
-    <div className="min-h-screen bg-gray-950 pt-20">
+    <div className="min-h-screen bg-gray-950 pt-20 mt-4">
       <div className="max-w-6xl mx-auto p-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -236,7 +236,7 @@ const AdminDashboard: React.FC = () => {
   );
 
   const renderOrderManagement = () => (
-    <div className="min-h-screen bg-gray-950 pt-20">
+    <div className="min-h-screen bg-gray-950 pt-20 mt-4">
       <div className="max-w-6xl mx-auto p-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

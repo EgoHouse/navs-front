@@ -130,9 +130,6 @@ const DesayunosPage: React.FC = () => {
         image="https://www.egohousebynavs.com/hookas.jpg"
       />
 
-      {/* Back to Menu Button */}
-      <BackToMenuButton />
-
       {/* Login Button - Top Right (if not authenticated) */}
       {!isAuthenticated && (
         <button
@@ -152,6 +149,7 @@ const DesayunosPage: React.FC = () => {
           <button
             onClick={() => {
               logout();
+              navigate('/');
             }}
             className="ml-2 p-1 hover:bg-white/10 rounded-full transition-colors"
             title="Cerrar sesión"

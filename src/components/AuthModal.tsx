@@ -20,6 +20,8 @@ import {
   MapPin
 } from 'lucide-react';
 import { useAuthWithServices } from '../hooks/useAuthWithServices';
+import { useSuccessMessage } from '../hooks';
+import SuccessMessage from './SuccessMessage';
 
 type AuthMode = 'login' | 'register';
 type UserType = 'admin' | 'user';
@@ -39,6 +41,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
 }) => {
   const { login, register, isAuthenticated, isLoading, error, clearError, user } = useAuthWithServices();
   const navigate = useNavigate();
+  const { isVisible: successVisible, message: successMessage, showSuccess, hideSuccess } = useSuccessMessage();
   
   const [authMode, setAuthMode] = useState<AuthMode>('login');
   const [userType, setUserType] = useState<UserType>(initialUserType);
@@ -58,22 +61,32 @@ const AuthModal: React.FC<AuthModalProps> = ({
   useEffect(() => {
     if (isAuthenticated && user) {
       console.log('Usuario autenticado:', user);
-      onClose();
       
-      // Ejecutar callback de éxito si se proporciona
-      if (onSuccess) {
-        onSuccess();
-      } else {
-        // Comportamiento por defecto
-        if (user.role === 'ADMIN') {
-          console.log('Redirigiendo a admin...');
-          navigate('/admin', { replace: true });
+      // Mostrar mensaje de éxito brevemente
+      const successMsg = user.role === 'ADMIN' 
+        ? 'Acceso administrativo exitoso'
+        : 'Sesión iniciada correctamente';
+      showSuccess(successMsg);
+      
+      // Cerrar modal después de un breve delay para mostrar el mensaje
+      setTimeout(() => {
+        onClose();
+        
+        // Ejecutar callback de éxito si se proporciona
+        if (onSuccess) {
+          onSuccess();
         } else {
-          console.log('Usuario normal, permaneciendo en la página actual');
+          // Comportamiento por defecto
+          if (user.role === 'ADMIN') {
+            console.log('Redirigiendo a admin...');
+            navigate('/admin', { replace: true });
+          } else {
+            console.log('Usuario normal, permaneciendo en la página actual');
+          }
         }
-      }
+      }, 1500); // 1.5 segundos para mostrar el mensaje
     }
-  }, [isAuthenticated, user, onClose, navigate, onSuccess]);
+  }, [isAuthenticated, user, onClose, navigate, onSuccess, showSuccess]);
 
   // Limpiar errores cuando cambia el modo o se abre/cierra el modal
   useEffect(() => {
@@ -355,6 +368,17 @@ const AuthModal: React.FC<AuthModalProps> = ({
                 </motion.div>
               )}
             </AnimatePresence>
+
+            {/* Success Message */}
+            <div className="mb-4">
+              <SuccessMessage
+                message={successMessage}
+                isVisible={successVisible}
+                onClose={hideSuccess}
+                size="sm"
+                position="relative"
+              />
+            </div>
 
             {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-4">
