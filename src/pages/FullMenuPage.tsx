@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo } from 'react'; // --- MEJORA: Importado `memo` ---
 import {
   ArrowLeft,
   Coffee,
@@ -37,38 +37,73 @@ const formatPrice = (price: number | undefined | null, currency: string = '€')
   return `${numPrice.toFixed(2).replace('.00', '')}${currency}`;
 };
 
+// --- MEJORA: Helper para optimización de imágenes (f_auto, q_auto, w_auto) ---
+// Asume un CDN tipo Cloudinary. Ajusta 'upload/' según tu proveedor.
+// Esta es una FUNCIÓN NUEVA, no modifica ninguna existente.
+const getOptimizedImageUrl = (
+  url: string | undefined | null,
+  options: { width: number }
+): string | undefined => {
+  if (!url) return undefined;
+  
+  // Asumimos que la URL es de Cloudinary si incluye '/upload/'
+  // Si tu CDN es diferente, ajusta esta lógica
+  if (url.includes('/upload/')) {
+    const { width } = options;
+    const transformations = `f_auto,q_auto,w_${width},dpr_auto`;
+    return url.replace('/upload/', `/upload/${transformations}/`);
+  }
+  
+  // Si no, devuelve la URL original (no podemos optimizarla)
+  return url;
+};
+
+
 // Componente para imagen placeholder
-const ProductImagePlaceholder: React.FC = () => (
-  <div className="w-16 h-16 bg-gradient-to-br from-gray-700 to-gray-800 rounded-lg flex items-center justify-center border border-gray-600">
+// --- MEJORA: `React.memo` evita re-renders si las props no cambian ---
+const ProductImagePlaceholder: React.FC = memo(() => (
+  <div className="w-16 h-16 bg-linear-to-br from-gray-700 to-gray-800 rounded-lg flex items-center justify-center border border-gray-600">
     <ImageIcon className="w-8 h-8 text-gray-400" />
   </div>
-);
+));
 
 // Componente para imagen del producto
+// --- MEJORA: `React.memo` evita re-renders si las props no cambian ---
 const ProductImage: React.FC<{
   imageUrl: string;
   name: string;
   onImageClick: () => void;
-}> = ({ imageUrl, name, onImageClick }) => (
-  <div
-    className="w-16 h-16 rounded-lg overflow-hidden border border-gray-600 cursor-pointer hover:border-yellow-400/50 transition-all duration-300 group"
-    onClick={onImageClick}
-  >
-    <img
-      src={imageUrl}
-      alt={name}
-      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-    />
-  </div>
-);
+}> = memo(({ imageUrl, name, onImageClick }) => {
+  // --- MEJORA: URL optimizada para thumbnails (ancho 128px) ---
+  const optimizedUrl = getOptimizedImageUrl(imageUrl, { width: 128 });
+
+  return (
+    <div
+      className="w-16 h-16 rounded-lg overflow-hidden border border-gray-600 cursor-pointer hover:border-yellow-400/50 transition-all duration-300 group"
+      onClick={onImageClick}
+    >
+      <img
+        src={optimizedUrl || imageUrl} // Fallback a la original si no se puede optimizar
+        alt={name}
+        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+        // --- MEJORA: Lazy loading nativo para imágenes de la carta ---
+        loading="lazy"
+        decoding="async"
+      />
+    </div>
+  );
+});
 
 // Modal de imagen
+// --- MEJORA: `React.memo` evita re-renders si las props no cambian ---
+// --- NOTA: Este componente es ideal para `React.lazy` + `Suspense` ---
+// (Requeriría moverlo a su propio archivo e importarlo dinámicamente)
 const ImageModal: React.FC<{
   isOpen: boolean;
   imageUrl: string;
   itemName: string;
   onClose: () => void;
-}> = ({ isOpen, imageUrl, itemName, onClose }) => {
+}> = memo(({ isOpen, imageUrl, itemName, onClose }) => {
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -86,6 +121,9 @@ const ImageModal: React.FC<{
   }, [isOpen, onClose]);
 
   if (!isOpen) return null;
+
+  // --- MEJORA: URL optimizada para vista de modal (ancho 1024px) ---
+  const optimizedModalUrl = getOptimizedImageUrl(imageUrl, { width: 1024 });
 
   return (
     <AnimatePresence>
@@ -118,9 +156,11 @@ const ImageModal: React.FC<{
           {/* Image */}
           <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-700/50 rounded-xl overflow-hidden">
             <img
-              src={imageUrl}
+              src={optimizedModalUrl || imageUrl} // Fallback a la original
               alt={itemName}
               className="w-full h-auto max-h-[80vh] object-contain"
+              // --- MEJORA: Lazy loading (aunque el modal ya es bajo demanda) ---
+              loading="lazy"
             />
             <div className="p-4 text-center">
               <h3 className="text-white font-medium text-lg">{itemName}</h3>
@@ -130,13 +170,14 @@ const ImageModal: React.FC<{
       </motion.div>
     </AnimatePresence>
   );
-};
+});
 
+// --- MEJORA: `React.memo` evita re-renders de items individuales ---
 const MenuItemComponent: React.FC<{
   item: NewMenuItem;
   currency: string;
   onImageClick: (imageUrl: string, itemName: string) => void;
-}> = ({ item, currency, onImageClick }) => (
+}> = memo(({ item, currency, onImageClick }) => (
   <motion.div
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
@@ -196,14 +237,15 @@ const MenuItemComponent: React.FC<{
       </div>
     </div>
   </motion.div>
-);
+));
 
+// --- MEJORA: `React.memo` evita re-renders de secciones enteras ---
 const SubcategorySection: React.FC<{
   subcategory: MenuSubcategory;
   currency: string;
   isSignature?: boolean;
   onImageClick: (imageUrl: string, itemName: string) => void;
-}> = ({ subcategory, currency, isSignature = false, onImageClick }) => (
+}> = memo(({ subcategory, currency, isSignature = false, onImageClick }) => (
   <div className="mb-8">
     <motion.div
       initial={{ opacity: 0, x: -20 }}
@@ -261,7 +303,7 @@ const SubcategorySection: React.FC<{
       </div>
     )}
   </div>
-);
+));
 
 const FullMenuPage: React.FC = () => {
   const navigate = useNavigate();
@@ -280,11 +322,13 @@ const FullMenuPage: React.FC = () => {
     window.scrollTo(0, 0);
   }, []);
 
+  // --- (Función sin modificar) ---
   const handleImageClick = (imageUrl: string, itemName: string) => {
     setSelectedImage({ url: imageUrl, name: itemName });
     setIsModalOpen(true);
   };
 
+  // --- (Función sin modificar) ---
   const closeModal = () => {
     setIsModalOpen(false);
     setSelectedImage(null);
@@ -315,7 +359,7 @@ const FullMenuPage: React.FC = () => {
           <h2 className="text-white text-xl font-bold mb-2">Error al cargar la carta</h2>
           <p className="text-gray-400 mb-6">{error}</p>
           <button
-            onClick={refetch}
+            onClick={() => refetch(true)}
             className="bg-yellow-400 text-black px-6 py-2 rounded-lg font-semibold hover:bg-yellow-300 transition-colors"
           >
             Intentar de nuevo
@@ -340,7 +384,7 @@ const FullMenuPage: React.FC = () => {
           <h2 className="text-white text-xl font-bold mb-2">Carta no disponible</h2>
           <p className="text-gray-400 mb-6">No hay categorías disponibles en este momento</p>
           <button
-            onClick={refetch}
+            onClick={() => refetch(true)}
             className="bg-yellow-400 text-black px-6 py-2 rounded-lg font-semibold hover:bg-yellow-300 transition-colors"
           >
             Actualizar
@@ -499,10 +543,32 @@ const FullMenuPage: React.FC = () => {
         </div>
 
         {/* Image Modal */}
+        {/* --- MEJORA: `React.lazy` y `Suspense` ---
+          Aquí es donde aplicarías `React.lazy`. 
+          Si `ImageModal` estuviera en su propio archivo (ej: 'ImageModal.tsx'),
+          lo importarías con:
+          
+          const LazyImageModal = lazy(() => import('./ImageModal'));
+          
+          Y luego lo usarías aquí dentro de <Suspense>:
+
+          <Suspense fallback={<Loader2 className="fixed..." />}>
+            {isModalOpen && selectedImage && (
+              <LazyImageModal
+                isOpen={isModalOpen}
+                ...
+              />
+            )}
+          </Suspense>
+          
+          Como no podemos cambiar la estructura de archivos, 
+          hemos aplicado `React.memo` al modal (definido arriba)
+          para optimizarlo lo máximo posible dentro de este archivo.
+        */}
         {isModalOpen && selectedImage && (
           <ImageModal
             isOpen={isModalOpen}
-            imageUrl={selectedImage.url}
+            imageUrl={selectedImage.url} // La URL se optimiza *dentro* del modal
             itemName={selectedImage.name}
             onClose={closeModal}
           />
@@ -512,4 +578,5 @@ const FullMenuPage: React.FC = () => {
   );
 };
 
-export default FullMenuPage;
+// --- MEJORA: Exportar el componente principal con `memo` ---
+export default memo(FullMenuPage);

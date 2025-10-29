@@ -50,10 +50,74 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
   });
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(15);
+  const [showOnlyToday, setShowOnlyToday] = useState(true); // Nuevo: mostrar solo pedidos de hoy por defecto
+
+  // Función para determinar si un pedido es de "hoy" (jornada de 10:00 AM a 01:00 AM del día siguiente)
+  const isOrderFromToday = useCallback((orderDate: string) => {
+    const order = new Date(orderDate);
+    const now = new Date();
+    
+    // Determinar cuál es el día de la jornada actual
+    let currentJourneyDate = new Date(now);
+    
+    // Si estamos entre las 00:00 y 01:00, la jornada pertenece al día anterior
+    if (now.getHours() < 1) {
+      currentJourneyDate.setDate(currentJourneyDate.getDate() - 1);
+    }
+    // Si estamos entre las 01:00 y 10:00, aún no ha empezado la jornada de hoy
+    else if (now.getHours() < 10) {
+      currentJourneyDate.setDate(currentJourneyDate.getDate() - 1);
+    }
+    
+    // Inicio de la jornada: 10:00 AM del día de la jornada
+    const journeyStart = new Date(currentJourneyDate);
+    journeyStart.setHours(10, 0, 0, 0);
+    
+    // Fin de la jornada: 01:00 AM del día siguiente
+    const journeyEnd = new Date(currentJourneyDate);
+    journeyEnd.setDate(journeyEnd.getDate() + 1);
+    journeyEnd.setHours(1, 0, 0, 0);
+    
+    return order >= journeyStart && order < journeyEnd;
+  }, []);
+
+  // Función para determinar si un pedido cuenta para los ingresos (jornada de 10:00 AM a 05:00 AM del día siguiente)
+  const isOrderForRevenue = useCallback((orderDate: string) => {
+    const order = new Date(orderDate);
+    const now = new Date();
+    
+    // Determinar cuál es el día de la jornada actual para ingresos
+    let currentJourneyDate = new Date(now);
+    
+    // Si estamos entre las 00:00 y 05:00, la jornada pertenece al día anterior
+    if (now.getHours() < 5) {
+      currentJourneyDate.setDate(currentJourneyDate.getDate() - 1);
+    }
+    // Si estamos entre las 05:00 y 10:00, aún no ha empezado la jornada de hoy
+    else if (now.getHours() < 10) {
+      currentJourneyDate.setDate(currentJourneyDate.getDate() - 1);
+    }
+    
+    // Inicio de la jornada: 10:00 AM del día de la jornada
+    const journeyStart = new Date(currentJourneyDate);
+    journeyStart.setHours(10, 0, 0, 0);
+    
+    // Fin de la jornada para ingresos: 05:00 AM del día siguiente
+    const journeyEnd = new Date(currentJourneyDate);
+    journeyEnd.setDate(journeyEnd.getDate() + 1);
+    journeyEnd.setHours(5, 0, 0, 0);
+    
+    return order >= journeyStart && order < journeyEnd;
+  }, []);
 
   // Función para filtrar pedidos del lado del cliente
   const filterOrders = useCallback((ordersToFilter: Order[]) => {
     let filteredOrders = [...ordersToFilter];
+
+    // Filtro por "solo hoy" (prioritario)
+    if (showOnlyToday) {
+      filteredOrders = filteredOrders.filter(order => isOrderFromToday(order.createdAt));
+    }
 
     // Filtro por término de búsqueda
     if (searchTerm && searchTerm.trim()) {
@@ -101,7 +165,7 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
     }
 
     return filteredOrders;
-  }, [searchTerm, filters]);
+  }, [searchTerm, filters, showOnlyToday, isOrderFromToday]);
 
   // Estado para guardar todos los pedidos (sin filtrar)
   const [allOrders, setAllOrders] = useState<Order[]>([]);
@@ -171,6 +235,13 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
     loadOrders(false);
   }, [filters, loadOrders]);
 
+  // Desactivar "Solo hoy" cuando se aplican filtros de fecha manualmente
+  useEffect(() => {
+    if (filters.startDate || filters.endDate) {
+      setShowOnlyToday(false);
+    }
+  }, [filters.startDate, filters.endDate]);
+
   // Bloquear scroll del body cuando algún modal esté abierto
   useEffect(() => {
     const isModalOpen = selectedOrder || isEditModalOpen || isDeleteModalOpen;
@@ -220,7 +291,15 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
   const loadStats = async () => {
     try {
       const data = await orderService.getOrderStats();
-      setStats(data);
+      
+      // Recalcular ingresos totales con base en la jornada actual (10:00 AM - 05:00 AM)
+      const ordersForRevenue = orders.filter(order => isOrderForRevenue(order.createdAt));
+      const journeyRevenue = ordersForRevenue.reduce((sum, order) => sum + (order.price || 0), 0);
+      
+      setStats({
+        ...data,
+        totalRevenue: journeyRevenue
+      });
     } catch (error: any) {
       setError(error.message || 'Error al cargar estadísticas');
     }
@@ -468,6 +547,7 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
       endDate: '',
       status: ''
     });
+    setShowOnlyToday(true); // Volver a mostrar solo pedidos de hoy
   };
 
   // Componente Modal para centrar correctamente en el viewport
@@ -577,10 +657,13 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
             </div>
           </div>
 
-          <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-6">
+          <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-6 group relative">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-400">Ingresos Totales</p>
+                <p className="text-sm font-medium text-gray-400">Ingresos Totales (Hoy)</p>
+                <p className="text-xs text-gray-500 max-h-0 overflow-hidden group-hover:max-h-8 group-hover:mt-0.5 transition-all duration-200">
+                  Jornada actual (10:00 AM - 05:00 AM)
+                </p>
                 <p className="text-2xl font-bold text-white">{stats.totalRevenue}€</p>
               </div>
               <DollarSign className="w-8 h-8 text-green-400" />
@@ -591,9 +674,11 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-400">
-                  {(searchTerm || filters.type || filters.status || filters.startDate || filters.endDate) 
-                    ? 'Abiertos (filtrados)' 
-                    : 'Pedidos Abiertos'
+                  {showOnlyToday
+                    ? 'Abiertos (Hoy)'
+                    : (searchTerm || filters.type || filters.status || filters.startDate || filters.endDate) 
+                      ? 'Abiertos (Filtrados)' 
+                      : 'Pedidos Abiertos'
                   }
                 </p>
                 <p className="text-2xl font-bold text-white">
@@ -608,9 +693,11 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-400">
-                  {(searchTerm || filters.type || filters.status || filters.startDate || filters.endDate) 
-                    ? 'Cerrados (filtrados)' 
-                    : 'Pedidos Cerrados'
+                  {showOnlyToday
+                    ? 'Cerrados (Hoy)'
+                    : (searchTerm || filters.type || filters.status || filters.startDate || filters.endDate) 
+                      ? 'Cerrados (Filtrados)' 
+                      : 'Pedidos Cerrados'
                   }
                 </p>
                 <p className="text-2xl font-bold text-white">
@@ -639,15 +726,54 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
               </p>
             )}
           </div>
-          {(searchTerm || filters.type || filters.status || filters.startDate || filters.endDate) && (
-            <button
-              onClick={clearFilters}
-              className="px-3 py-1 text-sm bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 hover:text-white transition-colors"
-            >
-              Limpiar filtros
-            </button>
-          )}
+          <div className="flex items-center space-x-3">
+            {/* Toggle para mostrar solo hoy o todos */}
+            <div className="flex items-center bg-gray-900 rounded-lg p-1 border border-gray-600">
+              <button
+                onClick={() => setShowOnlyToday(true)}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  showOnlyToday
+                    ? 'bg-yellow-600 text-white'
+                    : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                Solo hoy
+              </button>
+              <button
+                onClick={() => setShowOnlyToday(false)}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  !showOnlyToday
+                    ? 'bg-yellow-600 text-white'
+                    : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                Todos
+              </button>
+            </div>
+            
+            {(searchTerm || filters.type || filters.status || filters.startDate || filters.endDate) && (
+              <button
+                onClick={clearFilters}
+                className="px-3 py-1 text-sm bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 hover:text-white transition-colors"
+              >
+                Limpiar filtros
+              </button>
+            )}
+          </div>
         </div>
+        
+        {/* Indicador de rango de fechas cuando está en modo "Solo hoy" */}
+        {showOnlyToday && (
+          <div className="mb-4 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+            <div className="flex items-center space-x-2">
+              <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
+              <p className="text-sm text-yellow-400">
+                Mostrando pedidos de la jornada actual (10:00 AM - 01:00 AM)
+              </p>
+            </div>
+          </div>
+        )}
+        
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
@@ -737,7 +863,12 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
               <h4 className="text-xl font-bold text-white">Pedidos</h4>
               <p className="text-gray-400 text-sm">
                 {totalOrders} pedidos encontrados
-                {allOrders.length > 0 && totalOrders !== allOrders.length && (
+                {showOnlyToday && (
+                  <span className="ml-2 inline-flex items-center px-2 py-1 text-xs bg-yellow-500/20 text-yellow-400 rounded-full">
+                    Solo hoy
+                  </span>
+                )}
+                {allOrders.length > 0 && totalOrders !== allOrders.length && !showOnlyToday && (
                   <span className="text-gray-500"> de {allOrders.length} totales</span>
                 )}
                 {totalOrders > 0 && (
@@ -757,15 +888,19 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
           <div className="text-center py-20 text-gray-500">
             <Package size={48} className="mx-auto mb-4 opacity-50" />
             <h3 className="text-xl font-semibold mb-2">
-              {(searchTerm || filters.type || filters.status || filters.startDate || filters.endDate) 
-                ? 'No se encontraron pedidos' 
-                : 'No hay pedidos'
+              {showOnlyToday
+                ? 'No hay pedidos hoy'
+                : (searchTerm || filters.type || filters.status || filters.startDate || filters.endDate) 
+                  ? 'No se encontraron pedidos' 
+                  : 'No hay pedidos'
               }
             </h3>
             <p>
-              {(searchTerm || filters.type || filters.status || filters.startDate || filters.endDate) 
-                ? 'No se encontraron pedidos con los filtros aplicados' 
-                : 'Aún no se han realizado pedidos'
+              {showOnlyToday
+                ? 'No se han realizado pedidos en la jornada actual'
+                : (searchTerm || filters.type || filters.status || filters.startDate || filters.endDate) 
+                  ? 'No se encontraron pedidos con los filtros aplicados' 
+                  : 'Aún no se han realizado pedidos'
               }
             </p>
             {(searchTerm || filters.type || filters.status || filters.startDate || filters.endDate) && (
@@ -774,6 +909,14 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
                 className="mt-4 px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors"
               >
                 Limpiar filtros
+              </button>
+            )}
+            {showOnlyToday && !searchTerm && !filters.type && !filters.status && (
+              <button
+                onClick={() => setShowOnlyToday(false)}
+                className="mt-4 px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors"
+              >
+                Ver todos los pedidos
               </button>
             )}
           </div>

@@ -73,7 +73,7 @@ const Navbar: React.FC<NavbarProps> = ({ onLoginClick }) => {
     { name: 'Carta', id: 'menu' },
     { name: 'Cachimbas', id: 'shisha-gallery' },
     { name: 'Cocktails', id: 'cocktails' },
-    { name: 'Espacios', id: 'discover-space' },
+    // { name: 'Espacios', id: 'discover-space' },
     { name: 'Ubicación', id: 'location' },
   ];
 

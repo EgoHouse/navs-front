@@ -1,36 +1,89 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { CatalogService } from '../services';
 import type { Category, MenuItem, ApiError } from '../types';
 
+// Caché global compartido entre todas las instancias del hook
+let categoriesCache: Category[] | null = null;
+let categoriesCachePromise: Promise<Category[]> | null = null;
+
 // Hook para obtener todas las categorías
 export const useCategories = () => {
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [categories, setCategories] = useState<Category[]>(categoriesCache || []);
+  const [isLoading, setIsLoading] = useState(!categoriesCache);
   const [error, setError] = useState<string | null>(null);
+  const isMountedRef = useRef(true);
 
-  const fetchCategories = async () => {
+  const fetchCategories = async (force = false) => {
+    // Si ya hay datos en caché y no es forzado, usar el caché
+    if (categoriesCache && !force) {
+      setCategories(categoriesCache);
+      setIsLoading(false);
+      return categoriesCache;
+    }
+
+    // Si ya hay una petición en curso, esperar a que termine
+    if (categoriesCachePromise && !force) {
+      try {
+        const data = await categoriesCachePromise;
+        if (isMountedRef.current) {
+          setCategories(data);
+          setIsLoading(false);
+        }
+        return data;
+      } catch (error) {
+        // La promesa falló, intentar de nuevo
+      }
+    }
+
     try {
       setIsLoading(true);
       setError(null);
-      const data = await CatalogService.getAllCategories();
-      setCategories(data);
+      
+      // Crear la promesa de carga
+      categoriesCachePromise = CatalogService.getAllCategories();
+      const data = await categoriesCachePromise;
+      
+      // Guardar en caché
+      categoriesCache = data;
+      
+      if (isMountedRef.current) {
+        setCategories(data);
+      }
+      
+      return data;
     } catch (error) {
       const apiError = error as ApiError;
-      setError(apiError.message.toString());
+      if (isMountedRef.current) {
+        setError(apiError.message.toString());
+      }
+      categoriesCachePromise = null;
+      throw error;
     } finally {
-      setIsLoading(false);
+      if (isMountedRef.current) {
+        setIsLoading(false);
+      }
+      categoriesCachePromise = null;
     }
   };
 
   useEffect(() => {
-    fetchCategories();
+    isMountedRef.current = true;
+    
+    // Solo hacer fetch si no hay datos en caché
+    if (!categoriesCache) {
+      fetchCategories();
+    }
+
+    return () => {
+      isMountedRef.current = false;
+    };
   }, []);
 
   return {
     categories,
     isLoading,
     error,
-    refetch: fetchCategories,
+    refetch: (force = true) => fetchCategories(force),
   };
 };
 

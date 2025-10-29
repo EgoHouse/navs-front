@@ -12,10 +12,9 @@ import {
   Edit
 } from 'lucide-react';
 import { CatalogService } from '../../services';
-import { useSuccessMessage } from '../../hooks';
+import { useSuccessMessage, useCategories } from '../../hooks';
 import SuccessMessage from '../SuccessMessage';
 import type { 
-  Category, 
   AddItemRequest, 
   UpdateItemRequest, 
   UpdateSubcategoryNameRequest, 
@@ -29,8 +28,10 @@ interface MenuManagementProps {
 }
 
 const MenuManagement: React.FC<MenuManagementProps> = ({ }) => {
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Usar el hook optimizado de categorías
+  const { categories, isLoading: categoriesLoading, error: categoriesError, refetch } = useCategories();
+  
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
   const { isVisible: successVisible, message: successMessage, showSuccess, hideSuccess } = useSuccessMessage();
   
@@ -69,9 +70,6 @@ const MenuManagement: React.FC<MenuManagementProps> = ({ }) => {
   const [nameForm, setNameForm] = useState({
     newName: ''
   });
-  
-  const [selectedImage, setSelectedImage] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   // Autocomplete states
   const [showSubcategoryDropdown, setShowSubcategoryDropdown] = useState(false);
@@ -83,8 +81,12 @@ const MenuManagement: React.FC<MenuManagementProps> = ({ }) => {
 
   // Load categories on mount
   useEffect(() => {
-    loadCategories();
-  }, []);
+    // Las categorías ya se cargan automáticamente con el hook
+    // Solo necesitamos manejar errores si los hay
+    if (categoriesError) {
+      setError(categoriesError);
+    }
+  }, [categoriesError]);
 
   // Handle body scroll when modal is open
   useEffect(() => {
@@ -154,19 +156,6 @@ const MenuManagement: React.FC<MenuManagementProps> = ({ }) => {
       updateValidationErrors();
     }
   }, [selectedCategoryId, itemForm.subcategoryName, itemForm.subsectionName]);
-
-  const loadCategories = async () => {
-    try {
-      setLoading(true);
-      setError('');
-      const data = await CatalogService.getAllCategories();
-      setCategories(data);
-    } catch (err: any) {
-      setError(err.message || 'Error al cargar categorías');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const showMessage = (message: string, isError = false) => {
     if (isError) {
@@ -242,8 +231,6 @@ const MenuManagement: React.FC<MenuManagementProps> = ({ }) => {
   const openItemModal = (categoryId: string) => {
     setSelectedCategoryId(categoryId);
     setItemForm({ name: '', description: '', price: '', subcategoryName: '', subsectionName: '' });
-    setSelectedImage(null);
-    setImagePreview(null);
     setModalType('item');
     
     // Reset autocomplete states
@@ -273,10 +260,10 @@ const MenuManagement: React.FC<MenuManagementProps> = ({ }) => {
         }
       };
       
-      await CatalogService.addItem(itemData, selectedImage || undefined);
+      await CatalogService.addItem(itemData, undefined);
       showMessage('Producto agregado exitosamente');
       closeModal();
-      await loadCategories();
+      await refetch(true);
     } catch (err: any) {
       // Mostrar mensaje específico si la subcategoría o subsección no existe
       const errorMessage = err.message || 'Error al agregar producto';
@@ -304,8 +291,6 @@ const MenuManagement: React.FC<MenuManagementProps> = ({ }) => {
       subcategoryName,
       subsectionName: subsectionName || ''
     });
-    setSelectedImage(null);
-    setImagePreview(null);
     setModalType('editItem');
 
     // Reset autocomplete states
@@ -350,10 +335,10 @@ const MenuManagement: React.FC<MenuManagementProps> = ({ }) => {
         }
       };
       
-      await CatalogService.updateItem(updateData, selectedImage || undefined);
+      await CatalogService.updateItem(updateData, undefined);
       showMessage('Producto actualizado exitosamente');
       closeModal();
-      await loadCategories();
+      await refetch(true);
     } catch (err: any) {
       showMessage(err.message || 'Error al actualizar producto', true);
     } finally {
@@ -376,7 +361,7 @@ const MenuManagement: React.FC<MenuManagementProps> = ({ }) => {
       await CatalogService.updateSubcategoryName(updateData);
       showMessage('Subcategoría actualizada exitosamente');
       closeModal();
-      await loadCategories();
+      await refetch(true);
     } catch (err: any) {
       showMessage(err.message || 'Error al actualizar subcategoría', true);
     } finally {
@@ -400,7 +385,7 @@ const MenuManagement: React.FC<MenuManagementProps> = ({ }) => {
       await CatalogService.updateSubsectionName(updateData);
       showMessage('Subsección actualizada exitosamente');
       closeModal();
-      await loadCategories();
+      await refetch(true);
     } catch (err: any) {
       showMessage(err.message || 'Error al actualizar subsección', true);
     } finally {
@@ -417,7 +402,7 @@ const MenuManagement: React.FC<MenuManagementProps> = ({ }) => {
       setLoading(true);
       await CatalogService.deleteItem(categoryId, itemName);
       showMessage('Producto eliminado exitosamente');
-      await loadCategories();
+      await refetch(true);
     } catch (err: any) {
       showMessage(err.message || 'Error al eliminar producto', true);
     } finally {
@@ -429,8 +414,6 @@ const MenuManagement: React.FC<MenuManagementProps> = ({ }) => {
     setModalType(null);
     setSelectedCategoryId('');
     setItemForm({ name: '', description: '', price: '', subcategoryName: '', subsectionName: '' });
-    setSelectedImage(null);
-    setImagePreview(null);
     
     // Reset edit states
     setEditingItem(null);
@@ -442,42 +425,6 @@ const MenuManagement: React.FC<MenuManagementProps> = ({ }) => {
     setShowSubcategoryDropdown(false);
     setShowSubsectionDropdown(false);
     setValidationErrors({ subcategory: '', subsection: '' });
-  };
-
-  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      // Validar tamaño del archivo (5MB máximo)
-      const maxSize = 5 * 1024 * 1024; // 5MB en bytes
-      if (file.size > maxSize) {
-        showMessage('La imagen es demasiado grande. El tamaño máximo es 5MB.', true);
-        return;
-      }
-
-      // Validar tipo de archivo
-      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-      if (!allowedTypes.includes(file.type)) {
-        showMessage('Tipo de archivo no válido. Solo se permiten JPG, PNG y WebP.', true);
-        return;
-      }
-
-      setSelectedImage(file);
-      
-      // Crear preview de la imagen
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setImagePreview(e.target?.result as string);
-      };
-      reader.readAsDataURL(file);
-    } else {
-      setSelectedImage(null);
-      setImagePreview(null);
-    }
-  };
-
-  const removeImage = () => {
-    setSelectedImage(null);
-    setImagePreview(null);
   };
 
   // Autocomplete component
@@ -800,49 +747,18 @@ const MenuManagement: React.FC<MenuManagementProps> = ({ }) => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Imagen <span className="text-gray-500 text-xs">(opcional)</span>
+                    Imagen
                   </label>
                   
-                  {!imagePreview ? (
-                    <div className="border-2 border-dashed border-gray-600 rounded-lg p-4 text-center hover:border-gray-500 transition-colors">
-                      <input
-                        type="file"
-                        accept="image/jpeg,image/jpg,image/png,image/webp"
-                        onChange={handleImageChange}
-                        className="hidden"
-                        id="image-upload"
-                      />
-                      <label
-                        htmlFor="image-upload"
-                        className="cursor-pointer flex flex-col items-center space-y-2"
-                      >
-                        <Upload className="text-gray-400" size={32} />
-                        <div className="text-gray-400">
-                          <p className="text-sm">Haz clic para subir una imagen</p>
-                          <p className="text-xs">PNG, JPG, WebP hasta 5MB</p>
-                        </div>
-                      </label>
-                    </div>
-                  ) : (
-                    <div className="relative">
-                      <img
-                        src={imagePreview}
-                        alt="Preview"
-                        className="w-full h-32 object-cover rounded-lg border border-gray-600"
-                      />
-                      <button
-                        type="button"
-                        onClick={removeImage}
-                        className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
-                        title="Eliminar imagen"
-                      >
-                        <X size={16} />
-                      </button>
-                      <div className="mt-2 text-gray-400 text-xs">
-                        {selectedImage?.name} ({((selectedImage?.size || 0) / 1024 / 1024).toFixed(2)} MB)
+                  <div className="border-2 border-dashed border-gray-700 rounded-lg p-4 text-center bg-gray-800/30">
+                    <div className="flex flex-col items-center space-y-2 opacity-50">
+                      <Upload className="text-gray-500" size={32} />
+                      <div className="text-gray-500">
+                        <p className="text-sm font-medium">Deshabilitado por el momento</p>
+                        <p className="text-xs">La carga de imágenes estará disponible próximamente</p>
                       </div>
                     </div>
-                  )}
+                  </div>
                 </div>
 
                 <div className="flex space-x-3 pt-4">
@@ -955,37 +871,16 @@ const MenuManagement: React.FC<MenuManagementProps> = ({ }) => {
                   <label className="block text-sm font-medium text-gray-300 mb-2">
                     Imagen
                   </label>
-                  <div className="flex items-center space-x-3">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageChange}
-                      className="hidden"
-                      id="edit-image-upload"
-                    />
-                    <label
-                      htmlFor="edit-image-upload"
-                      className="flex items-center px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors cursor-pointer"
-                    >
-                      <Upload size={16} className="mr-2" />
-                      {selectedImage ? 'Cambiar imagen' : 'Subir imagen'}
-                    </label>
-                    {selectedImage && (
-                      <span className="text-green-400 text-sm">
-                        {selectedImage.name}
-                      </span>
-                    )}
-                  </div>
                   
-                  {imagePreview && (
-                    <div className="mt-3">
-                      <img
-                        src={imagePreview}
-                        alt="Vista previa"
-                        className="w-full h-32 object-cover rounded-lg border border-gray-600"
-                      />
+                  <div className="border-2 border-dashed border-gray-700 rounded-lg p-4 text-center bg-gray-800/30">
+                    <div className="flex flex-col items-center space-y-2 opacity-50">
+                      <Upload className="text-gray-500" size={32} />
+                      <div className="text-gray-500">
+                        <p className="text-sm font-medium">Deshabilitado por el momento</p>
+                        <p className="text-xs">La carga de imágenes estará disponible próximamente</p>
+                      </div>
                     </div>
-                  )}
+                  </div>
                 </div>
 
                 <div className="flex space-x-3 pt-4">
@@ -1099,7 +994,7 @@ const MenuManagement: React.FC<MenuManagementProps> = ({ }) => {
     return createPortal(modalContent, document.body);
   };
 
-  if (loading && categories.length === 0) {
+  if (categoriesLoading && categories.length === 0) {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="text-center">

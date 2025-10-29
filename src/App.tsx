@@ -6,7 +6,7 @@ import ShishaPage from './pages/ShishaPage';
 import GaleriaCachimbas from './pages/GaleriaCachimbas';
 import AdminDashboard from './pages/AdminDashboard';
 import ProtectedRoute from './components/ProtectedRoute';
-import LocalPage from './pages/LocalPage';
+// import LocalPage from './pages/LocalPage';
 import TableManagement from './pages/TableManagement';
 import DesayunosPage from './pages/DesayunosPage';
 import OrderTrackingPage from './pages/OrderTrackingPage';
@@ -24,7 +24,7 @@ function App() {
           {/* <Route path="/menu/:categorySlug" element={<MenuPage />} /> */}
           <Route path="/shisha" element={<ShishaPage />} />
           <Route path="/galeria-cachimbas" element={<GaleriaCachimbas />} />
-          <Route path="/local" element={<LocalPage />} />      
+          {/* <Route path="/local" element={<LocalPage />} />       */}
           <Route path="/tracking" element={<OrderTrackingPage />} />
           <Route path="/tracking/:trackingNumber" element={<OrderTrackingPage />} />
           

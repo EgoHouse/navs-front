@@ -9,7 +9,7 @@ import MenuCategories from '../components/MenuCategories';
 import CloudinaryVideoBackground from '../components/CloudinaryVideoBackground';
 import SEOHead from '../components/SEOHead';
 import WhatsAppButton from '../components/WhatsAppButton';
-import DiscoverSpace from './DiscoverSpace';
+// import DiscoverSpace from './DiscoverSpace';
 import ShishaGallerySection from '../components/ShishaGallerySection';
 import CocktailPersonalizationSection from '../components/CocktailPersonalizationSection';
 
@@ -180,7 +180,7 @@ const LandingPage: React.FC = () => {
         {/* Cocktail Personalization Section */}
         <CocktailPersonalizationSection />
 
-        <DiscoverSpace />
+        {/* <DiscoverSpace /> */}
 
         {/* Location Map Section */}
         <LocationMap />
