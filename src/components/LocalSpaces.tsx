@@ -35,8 +35,10 @@ const LocalSpaces: React.FC = () => {
       atmosphere: 'Social y relajado',
       images: [
         'https://res.cloudinary.com/dm70hhhnm/image/upload/v1761152399/imagen_2025-10-22_185956992_zsnezc.png',
-        'https://res.cloudinary.com/dm70hhhnm/image/upload/v1761152384/imagen_2025-10-22_185941759_kteysa.png',
-        'https://res.cloudinary.com/dm70hhhnm/image/upload/v1761152411/imagen_2025-10-22_190009156_z6bnra.png',
+        'https://res.cloudinary.com/dm70hhhnm/image/upload/v1761674822/DSC09185_pm6wrg.jpg',
+        'https://res.cloudinary.com/dm70hhhnm/image/upload/v1761674824/DSC08855_qczsms.jpg',
+        'https://res.cloudinary.com/dm70hhhnm/image/upload/v1761674823/DSC09178_bepp6p.jpg',
+        'https://res.cloudinary.com/dm70hhhnm/image/upload/v1761674822/DSC08850_rdiwwq.jpg',
       ],
       highlights: ['Mesas compartidas', 'Música ambiente', 'Servicio completo'],
     },
@@ -57,15 +59,13 @@ const LocalSpaces: React.FC = () => {
     {
       id: 'terraza',
       name: 'Terraza',
-      title: 'Aire Libre',
+      title: 'Terraza',
       description:
-        'Conecta con el exterior en un ambiente natural y relajante, perfecto para disfrutar bajo el cielo de Madrid.',
+        'Conecta con el exterior en un ambiente natural y relajante, perfecto para disfrutar bajo el cielo de Madrid y purificar tu ego.',
       capacity: '20-25 personas',
       atmosphere: 'Natural y fresco',
       images: [
-        '/FondoTerraza1.jpeg',
-        'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
-        'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
+        'https://res.cloudinary.com/dm70hhhnm/image/upload/v1761674823/DSC09174_mj4uor.jpg'
       ],
       highlights: ['Al aire libre', 'Vista panorámica', 'Ambiente natural'],
     },
