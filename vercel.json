@@ -2,7 +2,7 @@
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ],
-  "buildCommand": "npm i --include=dev && npm run build"
+  "buildCommand": "npm ci && npm run build"
 
 }
 
