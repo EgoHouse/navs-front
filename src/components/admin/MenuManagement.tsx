@@ -756,7 +756,7 @@ const MenuManagement: React.FC<MenuManagementProps> = ({}) => {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
               className="relative w-full max-w-2xl bg-gray-900 rounded-xl border border-gray-700 p-6 shadow-2xl max-h-[90vh] overflow-y-auto"
-              onClick={(e) => e.stopPropagation()}
+              onClick={(e: React.MouseEvent) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between mb-4">
                 <div>
@@ -937,7 +937,7 @@ const MenuManagement: React.FC<MenuManagementProps> = ({}) => {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
               className="relative w-full max-w-2xl bg-gray-900 rounded-xl border border-gray-700 p-6 shadow-2xl max-h-[90vh] overflow-y-auto"
-              onClick={(e) => e.stopPropagation()}
+              onClick={(e: React.MouseEvent) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between mb-4">
                 <div>
@@ -1087,7 +1087,7 @@ const MenuManagement: React.FC<MenuManagementProps> = ({}) => {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
               className="relative w-full max-w-md bg-gray-900 rounded-xl border border-gray-700 p-6 shadow-2xl"
-              onClick={(e) => e.stopPropagation()}
+              onClick={(e: React.MouseEvent) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between mb-4">
                 <div>

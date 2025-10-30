@@ -39,7 +39,7 @@ const InfoPopup: React.FC<InfoPopupProps> = ({
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
           className="relative bg-white/10 backdrop-blur-md rounded-2xl p-6 max-w-md w-full border border-white/20"
-          onClick={(e) => e.stopPropagation()}
+          onClick={(e: React.MouseEvent) => e.stopPropagation()}
         >
           <h3 className="text-xl font-semibold text-yellow-400 mb-3 font-['Poppins']">
             {title}
@@ -407,7 +407,7 @@ const ShishaQuiz: React.FC<ShishaQuizProps> = ({ onComplete, onBack }) => {
                         animate={{ scale: 1, opacity: 1 }}
                         exit={{ scale: 0.9, opacity: 0 }}
                         className="relative bg-white/10 backdrop-blur-md rounded-2xl p-6 max-w-md w-full border border-white/20"
-                        onClick={(e) => e.stopPropagation()}
+                        onClick={(e: React.MouseEvent) => e.stopPropagation()}
                       >
                         <h3 className="text-xl font-semibold text-yellow-400 mb-4 font-['Poppins']">
                           Tipo de {flavor.name}

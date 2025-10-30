@@ -13,10 +13,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useCategories } from '../hooks/useCatalog';
-import type {
-  MenuSubcategory,
-  MenuItem as NewMenuItem,
-} from '../types/api';
+import type { MenuSubcategory, MenuItem as NewMenuItem } from '../types/api';
 import SEOHead from '../components/SEOHead';
 
 const categoryIcons = {
@@ -26,7 +23,10 @@ const categoryIcons = {
   cocktails: Wine,
 } as const;
 
-const formatPrice = (price: number | undefined | null, currency: string = '€'): string => {
+const formatPrice = (
+  price: number | undefined | null,
+  currency: string = '€'
+): string => {
   if (!price && price !== 0) {
     return 'Precio no disponible';
   }
@@ -45,7 +45,7 @@ const getOptimizedImageUrl = (
   options: { width: number }
 ): string | undefined => {
   if (!url) return undefined;
-  
+
   // Asumimos que la URL es de Cloudinary si incluye '/upload/'
   // Si tu CDN es diferente, ajusta esta lógica
   if (url.includes('/upload/')) {
@@ -53,11 +53,10 @@ const getOptimizedImageUrl = (
     const transformations = `f_auto,q_auto,w_${width},dpr_auto`;
     return url.replace('/upload/', `/upload/${transformations}/`);
   }
-  
+
   // Si no, devuelve la URL original (no podemos optimizarla)
   return url;
 };
-
 
 // Componente para imagen placeholder
 // --- MEJORA: `React.memo` evita re-renders si las props no cambian ---
@@ -143,7 +142,7 @@ const ImageModal: React.FC<{
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.8, opacity: 0 }}
           className="relative max-w-4xl max-h-[90vh] w-full"
-          onClick={(e) => e.stopPropagation()}
+          onClick={(e: React.MouseEvent) => e.stopPropagation()}
         >
           {/* Close Button */}
           <button
@@ -207,16 +206,18 @@ const MenuItemComponent: React.FC<{
                 {item.variants.map((variant, idx) => (
                   <div key={idx} className="text-sm">
                     <span className="text-gray-300">{variant.size}: </span>
-                    <span className="text-yellow-400">{formatPrice(variant.price, currency)}</span>
+                    <span className="text-yellow-400">
+                      {formatPrice(variant.price, currency)}
+                    </span>
                   </div>
                 ))}
               </div>
             ) : item.price !== undefined && item.price !== null ? (
-              <div className="text-lg">
-                {formatPrice(item.price, currency)}
-              </div>
+              <div className="text-lg">{formatPrice(item.price, currency)}</div>
             ) : (
-              <span className="text-gray-400 text-sm">Precio no disponible</span>
+              <span className="text-gray-400 text-sm">
+                Precio no disponible
+              </span>
             )}
           </div>
         </div>
@@ -356,7 +357,9 @@ const FullMenuPage: React.FC = () => {
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center max-w-md mx-auto px-4">
           <AlertTriangle className="w-12 h-12 text-red-400 mx-auto mb-4" />
-          <h2 className="text-white text-xl font-bold mb-2">Error al cargar la carta</h2>
+          <h2 className="text-white text-xl font-bold mb-2">
+            Error al cargar la carta
+          </h2>
           <p className="text-gray-400 mb-6">{error}</p>
           <button
             onClick={() => refetch(true)}
@@ -381,8 +384,12 @@ const FullMenuPage: React.FC = () => {
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center max-w-md mx-auto px-4">
           <UtensilsCrossed className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <h2 className="text-white text-xl font-bold mb-2">Carta no disponible</h2>
-          <p className="text-gray-400 mb-6">No hay categorías disponibles en este momento</p>
+          <h2 className="text-white text-xl font-bold mb-2">
+            Carta no disponible
+          </h2>
+          <p className="text-gray-400 mb-6">
+            No hay categorías disponibles en este momento
+          </p>
           <button
             onClick={() => refetch(true)}
             className="bg-yellow-400 text-black px-6 py-2 rounded-lg font-semibold hover:bg-yellow-300 transition-colors"
@@ -544,12 +551,12 @@ const FullMenuPage: React.FC = () => {
 
         {/* Image Modal */}
         {/* --- MEJORA: `React.lazy` y `Suspense` ---
-          Aquí es donde aplicarías `React.lazy`. 
+          Aquí es donde aplicarías `React.lazy`.
           Si `ImageModal` estuviera en su propio archivo (ej: 'ImageModal.tsx'),
           lo importarías con:
-          
+
           const LazyImageModal = lazy(() => import('./ImageModal'));
-          
+
           Y luego lo usarías aquí dentro de <Suspense>:
 
           <Suspense fallback={<Loader2 className="fixed..." />}>
@@ -560,8 +567,8 @@ const FullMenuPage: React.FC = () => {
               />
             )}
           </Suspense>
-          
-          Como no podemos cambiar la estructura de archivos, 
+
+          Como no podemos cambiar la estructura de archivos,
           hemos aplicado `React.memo` al modal (definido arriba)
           para optimizarlo lo máximo posible dentro de este archivo.
         */}
