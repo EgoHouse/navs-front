@@ -17,19 +17,18 @@ import {
   UserPlus,
   Shield,
   Phone,
-  MapPin,
   CheckCircle,
-  XCircle
+  XCircle,
 } from 'lucide-react';
 import { useAuthWithServices } from '../hooks/useAuthWithServices';
 import SEOHead from '../components/SEOHead';
 import AddressAutocomplete from '../components/AddressAutocomplete';
-import { 
-  validateEmail, 
-  validateSpanishPhone, 
-  validatePassword, 
-  validateName, 
-  formatSpanishPhone 
+import {
+  validateEmail,
+  validateSpanishPhone,
+  validatePassword,
+  validateName,
+  formatSpanishPhone,
 } from '../utils/validation';
 
 type AuthMode = 'login' | 'register';
@@ -41,11 +40,19 @@ interface AuthPageProps {
 }
 
 const AuthPage: React.FC<AuthPageProps> = ({ userType: propUserType }) => {
-  const { login, register, isAuthenticated, isLoading, error, clearError, user } = useAuthWithServices();
+  const {
+    login,
+    register,
+    isAuthenticated,
+    isLoading,
+    error,
+    clearError,
+    user,
+  } = useAuthWithServices();
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
-  
+
   const [authMode, setAuthMode] = useState<AuthMode>('login');
   const userType = propUserType; // Usar el prop directamente
   const [showPassword, setShowPassword] = useState(false);
@@ -56,10 +63,12 @@ const AuthPage: React.FC<AuthPageProps> = ({ userType: propUserType }) => {
     name: '',
     phoneNumber: '',
     address: '',
-    confirmPassword: ''
+    confirmPassword: '',
   });
-  const [localErrors, setLocalErrors] = useState<{[key: string]: string}>({});
-  const [passwordStrength, setPasswordStrength] = useState<'weak' | 'medium' | 'strong' | null>(null);
+  const [localErrors, setLocalErrors] = useState<{ [key: string]: string }>({});
+  const [passwordStrength, setPasswordStrength] = useState<
+    'weak' | 'medium' | 'strong' | null
+  >(null);
   const [isValidatingEmail, setIsValidatingEmail] = useState(false);
   const [isValidatingPhone, setIsValidatingPhone] = useState(false);
 
@@ -67,9 +76,10 @@ const AuthPage: React.FC<AuthPageProps> = ({ userType: propUserType }) => {
   const getOrigin = (): Origin => {
     const fromQuery = searchParams.get('from');
     const fromState = location.state?.from?.pathname;
-    
+
     if (fromQuery === 'home' || fromState === '/') return 'home';
-    if (fromQuery === 'desayunos' || fromState === '/desayunos') return 'desayunos';
+    if (fromQuery === 'desayunos' || fromState === '/desayunos')
+      return 'desayunos';
     return 'other';
   };
 
@@ -109,7 +119,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ userType: propUserType }) => {
   }, [authMode, userType, clearError]);
 
   const validateForm = () => {
-    const errors: {[key: string]: string} = {};
+    const errors: { [key: string]: string } = {};
 
     // Validar email con función mejorada
     const emailValidation = validateEmail(formData.email);
@@ -162,7 +172,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ userType: propUserType }) => {
         console.log('Intentando hacer login...');
         await login({
           email: formData.email,
-          password: formData.password
+          password: formData.password,
         });
       } else {
         console.log('Intentando registrar usuario...');
@@ -171,7 +181,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ userType: propUserType }) => {
           password: formData.password,
           name: formData.name,
           phoneNumber: formData.phoneNumber,
-          address: formData.address || undefined
+          address: formData.address || undefined,
         });
       }
     } catch (err) {
@@ -197,9 +207,12 @@ const AuthPage: React.FC<AuthPageProps> = ({ userType: propUserType }) => {
         if (value) {
           const emailValidation = validateEmail(value);
           if (!emailValidation.isValid) {
-            setLocalErrors(prev => ({ ...prev, email: emailValidation.error! }));
+            setLocalErrors((prev) => ({
+              ...prev,
+              email: emailValidation.error!,
+            }));
           } else {
-            setLocalErrors(prev => ({ ...prev, email: '' }));
+            setLocalErrors((prev) => ({ ...prev, email: '' }));
           }
         }
       }, 800);
@@ -209,11 +222,11 @@ const AuthPage: React.FC<AuthPageProps> = ({ userType: propUserType }) => {
       setPasswordStrength(passwordValidation.strength || null);
     }
 
-    setFormData(prev => ({ ...prev, [field]: processedValue }));
-    
+    setFormData((prev) => ({ ...prev, [field]: processedValue }));
+
     // Limpiar error del campo cuando el usuario empiece a escribir
     if (localErrors[field] && field !== 'email') {
-      setLocalErrors(prev => ({ ...prev, [field]: '' }));
+      setLocalErrors((prev) => ({ ...prev, [field]: '' }));
     }
   };
 
@@ -222,8 +235,6 @@ const AuthPage: React.FC<AuthPageProps> = ({ userType: propUserType }) => {
     setLocalErrors({});
     clearError();
   };
-
-
 
   const handleBack = () => {
     if (userType === 'user') {
@@ -237,19 +248,23 @@ const AuthPage: React.FC<AuthPageProps> = ({ userType: propUserType }) => {
     }
   };
 
-  const renderFloatingIcon = (Icon: React.ElementType, delay: number, position: string) => (
+  const renderFloatingIcon = (
+    Icon: React.ElementType,
+    delay: number,
+    position: string
+  ) => (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
-      animate={{ 
+      animate={{
         opacity: [0.1, 0.3, 0.1],
         y: [0, -20, 0],
-        rotate: [0, 5, -5, 0]
+        rotate: [0, 5, -5, 0],
       }}
       transition={{
         duration: 4,
         delay,
         repeat: Infinity,
-        ease: "easeInOut"
+        ease: 'easeInOut',
       }}
       className={`absolute ${position} text-yellow-400/20`}
     >
@@ -259,7 +274,9 @@ const AuthPage: React.FC<AuthPageProps> = ({ userType: propUserType }) => {
 
   const getPageTitle = () => {
     if (userType === 'user') {
-      return authMode === 'login' ? 'Accede para ordenar' : 'Regístrate para ordenar';
+      return authMode === 'login'
+        ? 'Accede para ordenar'
+        : 'Regístrate para ordenar';
     } else {
       return 'Acceso Administrativo';
     }
@@ -277,9 +294,24 @@ const AuthPage: React.FC<AuthPageProps> = ({ userType: propUserType }) => {
     if (!passwordStrength || !formData.password) return null;
 
     const strengthConfig = {
-      weak: { color: 'text-red-400', bg: 'bg-red-400', label: 'Débil', width: '33%' },
-      medium: { color: 'text-yellow-400', bg: 'bg-yellow-400', label: 'Media', width: '66%' },
-      strong: { color: 'text-green-400', bg: 'bg-green-400', label: 'Fuerte', width: '100%' }
+      weak: {
+        color: 'text-red-400',
+        bg: 'bg-red-400',
+        label: 'Débil',
+        width: '33%',
+      },
+      medium: {
+        color: 'text-yellow-400',
+        bg: 'bg-yellow-400',
+        label: 'Media',
+        width: '66%',
+      },
+      strong: {
+        color: 'text-green-400',
+        bg: 'bg-green-400',
+        label: 'Fuerte',
+        width: '100%',
+      },
     };
 
     const config = strengthConfig[passwordStrength];
@@ -292,7 +324,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ userType: propUserType }) => {
           </span>
         </div>
         <div className="w-full bg-gray-700 rounded-full h-1.5">
-          <div 
+          <div
             className={`h-1.5 rounded-full transition-all duration-300 ${config.bg}`}
             style={{ width: config.width }}
           />
@@ -305,22 +337,26 @@ const AuthPage: React.FC<AuthPageProps> = ({ userType: propUserType }) => {
     if (isValidating) {
       return <Loader2 size={16} className="animate-spin text-yellow-400" />;
     }
-    
+
     if (localErrors[field]) {
       return <XCircle size={16} className="text-red-400" />;
     }
-    
+
     if (formData[field as keyof typeof formData] && !localErrors[field]) {
       if (field === 'email') {
         const validation = validateEmail(formData.email);
-        return validation.isValid ? <CheckCircle size={16} className="text-green-400" /> : null;
+        return validation.isValid ? (
+          <CheckCircle size={16} className="text-green-400" />
+        ) : null;
       }
       if (field === 'phoneNumber' && authMode === 'register') {
         const validation = validateSpanishPhone(formData.phoneNumber);
-        return validation.isValid ? <CheckCircle size={16} className="text-green-400" /> : null;
+        return validation.isValid ? (
+          <CheckCircle size={16} className="text-green-400" />
+        ) : null;
       }
     }
-    
+
     return null;
   };
 
@@ -349,12 +385,12 @@ const AuthPage: React.FC<AuthPageProps> = ({ userType: propUserType }) => {
 
         {/* Floating Background Icons */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          {renderFloatingIcon(Coffee, 0, "top-10 left-10")}
-          {renderFloatingIcon(Wine, 1, "top-20 right-16")}
-          {renderFloatingIcon(UtensilsCrossed, 2, "bottom-20 left-16")}
-          {renderFloatingIcon(Coffee, 3, "bottom-10 right-10")}
-          {renderFloatingIcon(Wine, 4, "top-1/3 left-1/4")}
-          {renderFloatingIcon(UtensilsCrossed, 5, "bottom-1/3 right-1/4")}
+          {renderFloatingIcon(Coffee, 0, 'top-10 left-10')}
+          {renderFloatingIcon(Wine, 1, 'top-20 right-16')}
+          {renderFloatingIcon(UtensilsCrossed, 2, 'bottom-20 left-16')}
+          {renderFloatingIcon(Coffee, 3, 'bottom-10 right-10')}
+          {renderFloatingIcon(Wine, 4, 'top-1/3 left-1/4')}
+          {renderFloatingIcon(UtensilsCrossed, 5, 'bottom-1/3 right-1/4')}
         </div>
 
         {/* Back Button */}
@@ -362,7 +398,10 @@ const AuthPage: React.FC<AuthPageProps> = ({ userType: propUserType }) => {
           onClick={handleBack}
           className="absolute top-6 left-6 z-20 flex items-center space-x-2 text-white/70 hover:text-white transition-colors group"
         >
-          <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
+          <ArrowLeft
+            size={20}
+            className="group-hover:-translate-x-1 transition-transform"
+          />
           <span className="text-sm font-light">Volver</span>
         </button>
 
@@ -382,9 +421,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ userType: propUserType }) => {
                   <UtensilsCrossed className="text-yellow-400" size={32} />
                   <h2 className="text-2xl font-bold text-white">EGO HOUSE</h2>
                 </div>
-                <p className="text-gray-300">
-                  {getPageTitle()}
-                </p>
+                <p className="text-gray-300">{getPageTitle()}</p>
                 <p className="text-gray-400 text-sm mt-2">
                   {getPageDescription()}
                 </p>
@@ -399,20 +436,26 @@ const AuthPage: React.FC<AuthPageProps> = ({ userType: propUserType }) => {
                     {userType === 'admin' ? (
                       <>
                         <Shield size={16} className="text-yellow-400" />
-                        <span className="text-white font-medium">Acceso Administrativo</span>
+                        <span className="text-white font-medium">
+                          Acceso Administrativo
+                        </span>
                       </>
                     ) : (
                       <>
                         <User size={16} className="text-yellow-400" />
                         <span className="text-white font-medium">
-                          {authMode === 'login' ? 'Acceso de Usuario' : 'Crear Cuenta de Usuario'}
+                          {authMode === 'login'
+                            ? 'Acceso de Usuario'
+                            : 'Crear Cuenta de Usuario'}
                         </span>
                       </>
                     )}
                   </div>
                   {userType === 'user' && (
                     <p className="text-gray-400 text-xs mt-1">
-                      {origin === 'desayunos' ? 'Para realizar pedidos de desayunos' : 'Para pedidos y servicios'}
+                      {origin === 'desayunos'
+                        ? 'Para realizar pedidos de desayunos'
+                        : 'Para pedidos y servicios'}
                     </p>
                   )}
                 </div>
@@ -444,19 +487,28 @@ const AuthPage: React.FC<AuthPageProps> = ({ userType: propUserType }) => {
                       Nombre completo
                     </label>
                     <div className="relative">
-                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                      <User
+                        className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                        size={18}
+                      />
                       <input
                         type="text"
                         value={formData.name}
-                        onChange={(e) => handleInputChange('name', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange('name', e.target.value)
+                        }
                         className={`w-full pl-10 pr-4 py-3 bg-gray-800/50 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-400/50 transition-all ${
-                          localErrors.name ? 'border-red-500' : 'border-gray-600 focus:border-yellow-400'
+                          localErrors.name
+                            ? 'border-red-500'
+                            : 'border-gray-600 focus:border-yellow-400'
                         }`}
                         placeholder="Tu nombre completo"
                       />
                     </div>
                     {localErrors.name && (
-                      <p className="text-red-400 text-sm mt-1">{localErrors.name}</p>
+                      <p className="text-red-400 text-sm mt-1">
+                        {localErrors.name}
+                      </p>
                     )}
                   </div>
                 )}
@@ -468,13 +520,20 @@ const AuthPage: React.FC<AuthPageProps> = ({ userType: propUserType }) => {
                       Teléfono *
                     </label>
                     <div className="relative">
-                      <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                      <Phone
+                        className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                        size={18}
+                      />
                       <input
                         type="tel"
                         value={formData.phoneNumber}
-                        onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange('phoneNumber', e.target.value)
+                        }
                         className={`w-full pl-10 pr-12 py-3 bg-gray-800/50 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-400/50 transition-all ${
-                          localErrors.phoneNumber ? 'border-red-500' : 'border-gray-600 focus:border-yellow-400'
+                          localErrors.phoneNumber
+                            ? 'border-red-500'
+                            : 'border-gray-600 focus:border-yellow-400'
                         }`}
                         placeholder="+34 600 000 000"
                       />
@@ -483,11 +542,14 @@ const AuthPage: React.FC<AuthPageProps> = ({ userType: propUserType }) => {
                       </div>
                     </div>
                     {localErrors.phoneNumber && (
-                      <p className="text-red-400 text-sm mt-1">{localErrors.phoneNumber}</p>
+                      <p className="text-red-400 text-sm mt-1">
+                        {localErrors.phoneNumber}
+                      </p>
                     )}
                     {!localErrors.phoneNumber && formData.phoneNumber && (
                       <p className="text-green-400 text-xs mt-1">
-                        ✓ Formato válido: {formatSpanishPhone(formData.phoneNumber)}
+                        ✓ Formato válido:{' '}
+                        {formatSpanishPhone(formData.phoneNumber)}
                       </p>
                     )}
                   </div>
@@ -497,14 +559,21 @@ const AuthPage: React.FC<AuthPageProps> = ({ userType: propUserType }) => {
                 {authMode === 'register' && userType === 'user' && (
                   <div>
                     <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Dirección <span className="text-gray-500">(opcional)</span>
+                      Dirección{' '}
+                      <span className="text-gray-500">(opcional)</span>
                     </label>
                     <AddressAutocomplete
                       value={formData.address}
-                      onChange={(address) => handleInputChange('address', address)}
+                      onChange={(address) =>
+                        handleInputChange('address', address)
+                      }
                       onSelect={(address, placeId, coordinates) => {
-                        console.log('Dirección seleccionada:', { address, placeId, coordinates });
-                        setFormData(prev => ({ ...prev, address }));
+                        console.log('Dirección seleccionada:', {
+                          address,
+                          placeId,
+                          coordinates,
+                        });
+                        setFormData((prev) => ({ ...prev, address }));
                       }}
                       placeholder="Escribe tu dirección en Madrid..."
                     />
@@ -522,22 +591,31 @@ const AuthPage: React.FC<AuthPageProps> = ({ userType: propUserType }) => {
                     Correo electrónico
                   </label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                    <Mail
+                      className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                      size={18}
+                    />
                     <input
                       type="email"
                       value={formData.email}
-                      onChange={(e) => handleInputChange('email', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange('email', e.target.value)
+                      }
                       className={`w-full pl-10 pr-12 py-3 bg-gray-800/50 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-400/50 transition-all ${
-                        localErrors.email ? 'border-red-500' : 'border-gray-600 focus:border-yellow-400'
+                        localErrors.email
+                          ? 'border-red-500'
+                          : 'border-gray-600 focus:border-yellow-400'
                       }`}
-                      placeholder='ejemplo@gmail.com'
+                      placeholder="ejemplo@gmail.com"
                     />
                     <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                       {renderValidationIcon('email', isValidatingEmail)}
                     </div>
                   </div>
                   {localErrors.email && (
-                    <p className="text-red-400 text-sm mt-1">{localErrors.email}</p>
+                    <p className="text-red-400 text-sm mt-1">
+                      {localErrors.email}
+                    </p>
                   )}
                 </div>
 
@@ -547,13 +625,20 @@ const AuthPage: React.FC<AuthPageProps> = ({ userType: propUserType }) => {
                     Contraseña
                   </label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                    <Lock
+                      className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                      size={18}
+                    />
                     <input
                       type={showPassword ? 'text' : 'password'}
                       value={formData.password}
-                      onChange={(e) => handleInputChange('password', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange('password', e.target.value)
+                      }
                       className={`w-full pl-10 pr-12 py-3 bg-gray-800/50 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-400/50 transition-all ${
-                        localErrors.password ? 'border-red-500' : 'border-gray-600 focus:border-yellow-400'
+                        localErrors.password
+                          ? 'border-red-500'
+                          : 'border-gray-600 focus:border-yellow-400'
                       }`}
                       placeholder="••••••••"
                     />
@@ -566,7 +651,9 @@ const AuthPage: React.FC<AuthPageProps> = ({ userType: propUserType }) => {
                     </button>
                   </div>
                   {localErrors.password && (
-                    <p className="text-red-400 text-sm mt-1">{localErrors.password}</p>
+                    <p className="text-red-400 text-sm mt-1">
+                      {localErrors.password}
+                    </p>
                   )}
                   {authMode === 'register' && renderPasswordStrengthIndicator()}
                 </div>
@@ -578,26 +665,41 @@ const AuthPage: React.FC<AuthPageProps> = ({ userType: propUserType }) => {
                       Confirmar contraseña
                     </label>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                      <Lock
+                        className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                        size={18}
+                      />
                       <input
                         type={showConfirmPassword ? 'text' : 'password'}
                         value={formData.confirmPassword}
-                        onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange('confirmPassword', e.target.value)
+                        }
                         className={`w-full pl-10 pr-12 py-3 bg-gray-800/50 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-400/50 transition-all ${
-                          localErrors.confirmPassword ? 'border-red-500' : 'border-gray-600 focus:border-yellow-400'
+                          localErrors.confirmPassword
+                            ? 'border-red-500'
+                            : 'border-gray-600 focus:border-yellow-400'
                         }`}
                         placeholder="••••••••"
                       />
                       <button
                         type="button"
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        onClick={() =>
+                          setShowConfirmPassword(!showConfirmPassword)
+                        }
                         className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
                       >
-                        {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        {showConfirmPassword ? (
+                          <EyeOff size={18} />
+                        ) : (
+                          <Eye size={18} />
+                        )}
                       </button>
                     </div>
                     {localErrors.confirmPassword && (
-                      <p className="text-red-400 text-sm mt-1">{localErrors.confirmPassword}</p>
+                      <p className="text-red-400 text-sm mt-1">
+                        {localErrors.confirmPassword}
+                      </p>
                     )}
                   </div>
                 )}
@@ -635,7 +737,9 @@ const AuthPage: React.FC<AuthPageProps> = ({ userType: propUserType }) => {
               {userType === 'user' && (
                 <div className="mt-6 text-center">
                   <p className="text-gray-400 text-sm">
-                    {authMode === 'login' ? '¿No tienes cuenta?' : '¿Ya tienes cuenta?'}
+                    {authMode === 'login'
+                      ? '¿No tienes cuenta?'
+                      : '¿Ya tienes cuenta?'}
                     <button
                       onClick={switchAuthMode}
                       className="ml-2 text-yellow-400 hover:text-yellow-300 font-medium transition-colors"
@@ -650,10 +754,9 @@ const AuthPage: React.FC<AuthPageProps> = ({ userType: propUserType }) => {
               <div className="mt-6 p-4 bg-yellow-400/10 border border-yellow-400/20 rounded-lg">
                 <p className="text-yellow-400 text-sm text-center">
                   <strong>
-                    {userType === 'admin' 
+                    {userType === 'admin'
                       ? 'Acceso exclusivo para administradores'
-                      : 'Requerido para realizar pedidos'
-                    }
+                      : 'Requerido para realizar pedidos'}
                   </strong>
                 </p>
                 {userType === 'admin' && (
@@ -666,10 +769,9 @@ const AuthPage: React.FC<AuthPageProps> = ({ userType: propUserType }) => {
               {/* Footer Note */}
               <div className="mt-6 text-center">
                 <p className="text-gray-400 text-xs">
-                  {userType === 'admin' 
+                  {userType === 'admin'
                     ? 'Panel de administración - EGO HOUSE'
-                    : 'Servicios de usuario - EGO HOUSE'
-                  }
+                    : 'Servicios de usuario - EGO HOUSE'}
                 </p>
               </div>
             </div>

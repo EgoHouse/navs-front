@@ -9,7 +9,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useCategoryBySlug } from '../hooks/useCatalog';
-import type { MenuSubcategory, MenuItem, MenuVariant } from '../types';
+import type { MenuSubcategory, MenuItem } from '../types';
 import SEOHead from '../components/SEOHead';
 
 const categoryIcons = {
@@ -209,7 +209,9 @@ const MenuPage: React.FC = () => {
     categoryIcons[category.slug as keyof typeof categoryIcons] || Utensils;
 
   const filteredSubcategories = selectedSubcategory
-    ? category.subcategories.filter((sub: any) => sub.name === selectedSubcategory)
+    ? category.subcategories.filter(
+        (sub: any) => sub.name === selectedSubcategory
+      )
     : category.subcategories;
 
   return (

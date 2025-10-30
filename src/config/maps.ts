@@ -1,7 +1,8 @@
 // Configuración de APIs externas
 
 // Google Places API
-export const GOOGLE_PLACES_API_KEY = process.env.VITE_GOOGLE_PLACES_API_KEY || '';
+export const GOOGLE_PLACES_API_KEY =
+  (import.meta.env.VITE_GOOGLE_PLACES_API_KEY as string) || '';
 
 // Configuración para Google Places
 export const GOOGLE_PLACES_CONFIG = {

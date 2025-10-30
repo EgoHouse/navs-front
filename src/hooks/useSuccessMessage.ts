@@ -7,9 +7,7 @@ interface UseSuccessMessageReturn {
   hideSuccess: () => void;
 }
 
-export const useSuccessMessage = (
-  autoHideDuration: number = 3000
-): UseSuccessMessageReturn => {
+export const useSuccessMessage = (): UseSuccessMessageReturn => {
   const [isVisible, setIsVisible] = useState(false);
   const [message, setMessage] = useState('');
 
@@ -28,6 +26,6 @@ export const useSuccessMessage = (
     isVisible,
     message,
     showSuccess,
-    hideSuccess
+    hideSuccess,
   };
 };

@@ -1,30 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, LogIn } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Menu, X } from 'lucide-react';
 import { useAuthWithServices } from '../hooks/useAuthWithServices';
-import UserMenu from './UserMenu';
-import AuthModal from './AuthModal';
 
 interface NavbarProps {
   onLoginClick?: () => void;
 }
 
-const Navbar: React.FC<NavbarProps> = ({ onLoginClick }) => {
+const Navbar: React.FC<NavbarProps> = () => {
   const { isAuthenticated } = useAuthWithServices();
-  const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [showAuthModal, setShowAuthModal] = useState(false);
-
-  const handleLoginClick = () => {
-    if (onLoginClick) {
-      onLoginClick();
-    } else {
-      // Redirigir a la página de autenticación en lugar de abrir modal
-      navigate('/auth?from=home');
-    }
-  };
 
   // Hook para detectar el scroll
   useEffect(() => {
@@ -36,7 +22,7 @@ const Navbar: React.FC<NavbarProps> = ({ onLoginClick }) => {
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [isAuthenticated]);
 
   // Log cambios en el estado de autenticación
   useEffect(() => {
