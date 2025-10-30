@@ -19,6 +19,8 @@ import {
   Play,
   RefreshCw,
   ChevronLeft,
+  Copy,
+  Check,
 } from 'lucide-react';
 import { orderService } from '../../services';
 import { useSuccessMessage } from '../../hooks';
@@ -58,6 +60,7 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(15);
   const [showOnlyToday, setShowOnlyToday] = useState(true); // Nuevo: mostrar solo pedidos de hoy por defecto
+  const [copiedTrackingId, setCopiedTrackingId] = useState<string | null>(null);
 
   // Función para determinar si un pedido es de "hoy" (jornada desde las 01:01 AM hasta las 01:00 AM del día siguiente)
   const isOrderFromToday = useCallback((orderDate: string) => {
@@ -622,6 +625,20 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
     setShowOnlyToday(true); // Volver a mostrar solo pedidos de hoy
   };
 
+  const copyTrackingNumber = async (
+    trackingNumber: string,
+    orderId: string
+  ) => {
+    try {
+      await navigator.clipboard.writeText(trackingNumber);
+      setCopiedTrackingId(orderId);
+      showMessage('Número de seguimiento copiado');
+      setTimeout(() => setCopiedTrackingId(null), 2000);
+    } catch (error) {
+      showMessage('Error al copiar el número de seguimiento', true);
+    }
+  };
+
   // Componente Modal para centrar correctamente en el viewport
   const Modal: React.FC<{
     isOpen: boolean;
@@ -693,11 +710,11 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {renderMessages()}
 
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h3 className="text-2xl font-bold text-white">Gestión de Pedidos</h3>
           <p className="text-gray-400">Administra los pedidos de desayunos</p>
@@ -705,7 +722,7 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
         <button
           onClick={handleRefresh}
           disabled={refreshing || loading}
-          className="flex items-center space-x-2 px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex items-center justify-center space-x-2 px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           title="Refrescar pedidos"
         >
           <RefreshCw
@@ -721,43 +738,43 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="grid grid-cols-1 md:grid-cols-4 gap-6"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6"
         >
-          <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-6">
+          <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-400">
+                <p className="text-xs sm:text-sm font-medium text-gray-400">
                   Total Pedidos
                 </p>
-                <p className="text-2xl font-bold text-white">
+                <p className="text-xl sm:text-2xl font-bold text-white">
                   {stats.totalOrders}
                 </p>
               </div>
-              <Users className="w-8 h-8 text-blue-400" />
+              <Users className="w-6 h-6 sm:w-8 sm:h-8 text-blue-400 shrink-0" />
             </div>
           </div>
 
-          <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-6 group relative">
+          <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-4 sm:p-6 group relative">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-400">
+              <div className="min-w-0 flex-1">
+                <p className="text-xs sm:text-sm font-medium text-gray-400">
                   Ingresos Totales (Hoy)
                 </p>
                 <p className="text-xs text-gray-500 max-h-0 overflow-hidden group-hover:max-h-8 group-hover:mt-0.5 transition-all duration-200">
                   Jornada actual (10:00 AM - 01:00 AM)
                 </p>
-                <p className="text-2xl font-bold text-white">
+                <p className="text-xl sm:text-2xl font-bold text-white">
                   {stats.totalRevenue}€
                 </p>
               </div>
-              <DollarSign className="w-8 h-8 text-green-400" />
+              <DollarSign className="w-6 h-6 sm:w-8 sm:h-8 text-green-400 shrink-0" />
             </div>
           </div>
 
-          <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-6">
+          <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-4 sm:p-6">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-400">
+              <div className="min-w-0 flex-1">
+                <p className="text-xs sm:text-sm font-medium text-gray-400 truncate">
                   {showOnlyToday
                     ? 'Abiertos (Hoy)'
                     : searchTerm ||
@@ -768,18 +785,18 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
                     ? 'Abiertos (Filtrados)'
                     : 'Pedidos Abiertos'}
                 </p>
-                <p className="text-2xl font-bold text-white">
+                <p className="text-xl sm:text-2xl font-bold text-white">
                   {orders.filter((order) => order.status !== 'closed').length}
                 </p>
               </div>
-              <Unlock className="w-8 h-8 text-green-400" />
+              <Unlock className="w-6 h-6 sm:w-8 sm:h-8 text-green-400 shrink-0" />
             </div>
           </div>
 
-          <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-6">
+          <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-4 sm:p-6">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-400">
+              <div className="min-w-0 flex-1">
+                <p className="text-xs sm:text-sm font-medium text-gray-400 truncate">
                   {showOnlyToday
                     ? 'Cerrados (Hoy)'
                     : searchTerm ||
@@ -790,11 +807,11 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
                     ? 'Cerrados (Filtrados)'
                     : 'Pedidos Cerrados'}
                 </p>
-                <p className="text-2xl font-bold text-white">
+                <p className="text-xl sm:text-2xl font-bold text-white">
                   {orders.filter((order) => order.status === 'closed').length}
                 </p>
               </div>
-              <Lock className="w-8 h-8 text-gray-400" />
+              <Lock className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400 shrink-0" />
             </div>
           </div>
         </motion.div>
@@ -807,7 +824,7 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
         transition={{ delay: 0.1 }}
         className="bg-gray-800/50 border border-gray-700 rounded-lg p-6"
       >
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
           <div>
             <h4 className="text-lg font-semibold text-white">Filtros</h4>
             {(searchTerm ||
@@ -821,12 +838,12 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
               </p>
             )}
           </div>
-          <div className="flex items-center space-x-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
             {/* Toggle para mostrar solo hoy o todos */}
             <div className="flex items-center bg-gray-900 rounded-lg p-1 border border-gray-600">
               <button
                 onClick={() => setShowOnlyToday(true)}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                className={`flex-1 sm:flex-none px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                   showOnlyToday
                     ? 'bg-yellow-600 text-white'
                     : 'text-gray-400 hover:text-white'
@@ -836,7 +853,7 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
               </button>
               <button
                 onClick={() => setShowOnlyToday(false)}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                className={`flex-1 sm:flex-none px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                   !showOnlyToday
                     ? 'bg-yellow-600 text-white'
                     : 'text-gray-400 hover:text-white'
@@ -873,7 +890,7 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
               Buscar
@@ -959,7 +976,7 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className="bg-gray-800/50 border border-gray-700 rounded-xl p-6"
+        className="bg-gray-800/50 border border-gray-700 rounded-xl p-4 sm:p-6"
       >
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-3">
@@ -1052,56 +1069,62 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
               )}
           </div>
         ) : (
-          <div className="grid gap-4">
+          <div className="grid gap-3 sm:gap-4">
             {currentOrders.map((order) => (
               <motion.div
                 key={order.id}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className={`bg-gray-900/50 border border-gray-600 rounded-lg p-4 hover:border-gray-500 transition-colors group ${
+                className={`bg-gray-900/50 border border-gray-600 rounded-lg p-3 sm:p-4 hover:border-gray-500 transition-colors group relative min-w-0 ${
                   isOrderLoading(order.id)
                     ? 'opacity-75 pointer-events-none'
                     : ''
                 }`}
               >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between mb-3">
-                      <div>
-                        <div className="flex items-center space-x-2 mb-1">
-                          <h6 className="font-medium text-white truncate">
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between min-w-0">
+                  <div className="flex-1 min-w-0 overflow-hidden">
+                    <div className="flex flex-col gap-3">
+                      <div className="flex-1">
+                        <div className="flex flex-wrap items-center gap-2 mb-1.5 sm:mb-2">
+                          <h6 className="font-medium text-white text-sm sm:text-base">
                             {order.name}
                           </h6>
                           <span
-                            className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusBadgeClass(
+                            className={`inline-flex px-2 py-0.5 text-xs font-semibold rounded-full ${getStatusBadgeClass(
                               order.status
                             )}`}
                           >
                             {getStatusLabel(order.status)}
                           </span>
                         </div>
-                        <p className="text-gray-400 text-sm">{order.email}</p>
-                        <p className="text-gray-400 text-sm">{order.phone}</p>
-                        {order.address && (
-                          <p className="text-gray-400 text-sm">
-                            {order.address}
+                        <div className="space-y-0.5 sm:space-y-1">
+                          <p className="text-gray-400 text-xs sm:text-sm break-all">
+                            {order.email}
                           </p>
-                        )}
+                          <p className="text-gray-400 text-xs sm:text-sm">
+                            {order.phone}
+                          </p>
+                          {order.address && (
+                            <p className="text-gray-400 text-xs sm:text-sm wrap-break-word">
+                              {order.address}
+                            </p>
+                          )}
+                        </div>
                       </div>
-                      <div className="text-right ml-4">
+                      <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-2">
                         <span
-                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getOrderTypeColor(
+                          className={`inline-flex px-2 py-0.5 text-xs font-semibold rounded-full whitespace-nowrap self-start ${getOrderTypeColor(
                             order.type
                           )}`}
                         >
                           {getOrderTypeLabel(order.type)}
                         </span>
-                        <p className="text-white font-bold mt-1">
+                        <p className="text-white font-bold text-sm sm:text-base">
                           {order.price}€
                         </p>
                         {order.eventStatus && order.status !== 'pending' && (
                           <span
-                            className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full mt-1 ${getEventStatusColor(
+                            className={`inline-flex px-2 py-0.5 text-xs font-semibold rounded-full whitespace-nowrap self-start ${getEventStatusColor(
                               order.eventStatus
                             )}`}
                           >
@@ -1109,21 +1132,43 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
                           </span>
                         )}
                         {order.trackingNumber && (
-                          <p className="text-gray-400 text-xs mt-1">
-                            #{order.trackingNumber}
-                          </p>
+                          <div className="flex items-center gap-1">
+                            <p className="text-gray-400 text-xs whitespace-nowrap">
+                              #{order.trackingNumber}
+                            </p>
+                            <button
+                              onClick={() =>
+                                copyTrackingNumber(
+                                  order.trackingNumber!,
+                                  order.id
+                                )
+                              }
+                              className="p-1 text-gray-400 hover:text-white hover:bg-gray-700 rounded transition-colors"
+                              title="Copiar número de seguimiento"
+                            >
+                              {copiedTrackingId === order.id ? (
+                                <Check size={12} className="text-green-400" />
+                              ) : (
+                                <Copy size={12} />
+                              )}
+                            </button>
+                          </div>
                         )}
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between text-sm">
-                      <div className="flex items-center space-x-4 text-gray-400">
-                        <span>Cantidad: {order.quantity}</span>
-                        <span>{formatDate(order.createdAt)}</span>
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between text-xs sm:text-sm gap-1.5 sm:gap-2">
+                      <div className="flex flex-wrap items-center gap-x-3 sm:gap-x-4 gap-y-1 sm:gap-y-2 text-gray-400">
+                        <span className="whitespace-nowrap">
+                          Cantidad: {order.quantity}
+                        </span>
+                        <span className="whitespace-nowrap text-xs sm:text-sm">
+                          {formatDate(order.createdAt)}
+                        </span>
                         {isOrderLoading(order.id) && (
                           <div className="flex items-center space-x-2 text-yellow-400">
                             <Loader2 size={14} className="animate-spin" />
-                            <span className="text-xs capitalize">
+                            <span className="text-xs capitalize whitespace-nowrap">
                               {getOrderLoadingAction(order.id) === 'starting' &&
                                 'Iniciando...'}
                               {getOrderLoadingAction(order.id) === 'closing' &&
@@ -1141,13 +1186,114 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
                     </div>
 
                     {order.observations && (
-                      <div className="mt-2 p-2 bg-gray-800/50 rounded text-sm text-gray-300">
+                      <div className="mt-2 sm:mt-3 p-2 bg-gray-800/50 rounded text-xs sm:text-sm text-gray-300">
                         <strong>Observaciones:</strong> {order.observations}
                       </div>
                     )}
                   </div>
 
-                  <div className="flex items-center space-x-2 ml-4 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all">
+                  {/* Botones de acción - En móvil van abajo, en desktop a la derecha con hover */}
+                  <div className="flex flex-wrap items-center gap-2 mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-700 sm:hidden">
+                    <button
+                      onClick={() => setSelectedOrder(order)}
+                      disabled={isOrderLoading(order.id)}
+                      className="flex items-center gap-1.5 px-3 py-2 text-sm text-blue-400 bg-blue-500/10 hover:bg-blue-500/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      title="Ver detalles"
+                    >
+                      <Eye size={16} />
+                      <span>Ver</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        setSelectedOrder(order);
+                        setIsEditModalOpen(true);
+                      }}
+                      disabled={isOrderLoading(order.id)}
+                      className="flex items-center gap-1.5 px-3 py-2 text-sm text-yellow-400 bg-yellow-500/10 hover:bg-yellow-500/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      title="Editar"
+                    >
+                      <Edit size={16} />
+                      <span>Editar</span>
+                    </button>
+
+                    {order.status === 'pending' ? (
+                      <button
+                        onClick={() => handleStartOrder(order)}
+                        disabled={isOrderLoading(order.id)}
+                        className="flex items-center gap-1.5 px-3 py-2 text-sm text-green-400 bg-green-500/10 hover:bg-green-500/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        title="Empezar pedido"
+                      >
+                        {getOrderLoadingAction(order.id) === 'starting' ? (
+                          <Loader2 size={16} className="animate-spin" />
+                        ) : (
+                          <Play size={16} />
+                        )}
+                        <span>Empezar</span>
+                      </button>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => handleToggleOrderStatus(order)}
+                          disabled={isOrderLoading(order.id)}
+                          className={`flex items-center gap-1.5 px-3 py-2 text-sm rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                            order.status === 'closed'
+                              ? 'text-green-400 bg-green-500/10 hover:bg-green-500/20'
+                              : 'text-orange-400 bg-orange-500/10 hover:bg-orange-500/20'
+                          }`}
+                          title={
+                            order.status === 'closed'
+                              ? 'Reabrir pedido'
+                              : 'Cerrar pedido'
+                          }
+                        >
+                          {getOrderLoadingAction(order.id) === 'reopening' ||
+                          getOrderLoadingAction(order.id) === 'closing' ? (
+                            <Loader2 size={16} className="animate-spin" />
+                          ) : order.status === 'closed' ? (
+                            <Unlock size={16} />
+                          ) : (
+                            <Lock size={16} />
+                          )}
+                          <span>
+                            {order.status === 'closed' ? 'Reabrir' : 'Cerrar'}
+                          </span>
+                        </button>
+                        {canAdvanceEvent(order.eventStatus) &&
+                          order.status !== 'closed' && (
+                            <button
+                              onClick={() => handleAdvanceEventStatus(order)}
+                              disabled={isOrderLoading(order.id)}
+                              className="flex items-center gap-1.5 px-3 py-2 text-sm text-purple-400 bg-purple-500/10 hover:bg-purple-500/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                              title="Siguiente Evento"
+                            >
+                              {getOrderLoadingAction(order.id) ===
+                              'advancing' ? (
+                                <Loader2 size={16} className="animate-spin" />
+                              ) : (
+                                <ChevronRight size={16} />
+                              )}
+                              <span>Siguiente</span>
+                            </button>
+                          )}
+                      </>
+                    )}
+
+                    <button
+                      onClick={() => {
+                        setSelectedOrder(order);
+                        setIsDeleteModalOpen(true);
+                      }}
+                      disabled={isOrderLoading(order.id)}
+                      className="flex items-center gap-1.5 px-3 py-2 text-sm text-red-400 bg-red-500/10 hover:bg-red-500/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      title="Eliminar"
+                    >
+                      <Trash2 size={16} />
+                      <span>Eliminar</span>
+                    </button>
+                  </div>
+
+                  {/* Botones desktop - ocultos en móvil, posicionados a la derecha */}
+                  <div className="hidden sm:flex items-center space-x-2 ml-4 opacity-0 group-hover:opacity-100 transition-all">
                     <button
                       onClick={() => setSelectedOrder(order)}
                       disabled={isOrderLoading(order.id)}
@@ -1168,7 +1314,6 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
                       <Edit size={16} />
                     </button>
 
-                    {/* Mostrar botón "Empezar" solo cuando está en pending */}
                     {order.status === 'pending' ? (
                       <button
                         onClick={() => handleStartOrder(order)}
@@ -1246,7 +1391,7 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
 
         {/* Paginación */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-between pt-6 border-t border-gray-600">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-gray-600">
             <div className="text-sm text-gray-400">
               Página {currentPage} de {totalPages}
             </div>
@@ -1259,7 +1404,7 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
                 className="flex items-center px-3 py-2 text-sm font-medium text-gray-300 bg-gray-800 border border-gray-600 rounded-lg hover:bg-gray-700 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 <ChevronLeft size={16} className="mr-1" />
-                Anterior
+                <span className="hidden sm:inline">Anterior</span>
               </button>
 
               {/* Números de página */}
@@ -1298,7 +1443,7 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
                 disabled={currentPage === totalPages}
                 className="flex items-center px-3 py-2 text-sm font-medium text-gray-300 bg-gray-800 border border-gray-600 rounded-lg hover:bg-gray-700 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                Siguiente
+                <span className="hidden sm:inline">Siguiente</span>
                 <ChevronRight size={16} className="ml-1" />
               </button>
             </div>
