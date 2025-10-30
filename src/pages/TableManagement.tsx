@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import type { Table } from '../data/tableData';
 import { mockTables, mockReservations } from '../data/tableData';
 import TableComponent from '../components/admin/TableComponent';
+import { useSuccessMessage } from '../hooks';
+import SuccessMessage from '../components/SuccessMessage';
 import {
   ZoomIn,
   ZoomOut,
@@ -25,6 +27,7 @@ const TableManagement: React.FC = () => {
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [showStats, setShowStats] = useState(false);
+  const { isVisible: successVisible, message: successMessage, showSuccess, hideSuccess } = useSuccessMessage();
 
   const zones = [
     { id: 'all', name: 'Todas las zonas', color: '#6B7280' },
@@ -67,9 +70,22 @@ const TableManagement: React.FC = () => {
   };
 
   const handleTableStatusChange = (tableId: string, newStatus: Table['status']) => {
-    setTables(prev => prev.map(table =>
-      table.id === tableId ? { ...table, status: newStatus } : table
-    ));
+    const table = tables.find(t => t.id === tableId);
+    if (table) {
+      setTables(prev => prev.map(t =>
+        t.id === tableId ? { ...t, status: newStatus } : t
+      ));
+      
+      const statusText = {
+        'available': 'disponible',
+        'occupied': 'ocupada',
+        'reserved': 'reservada',
+        'cleaning': 'en limpieza',
+        'maintenance': 'en mantenimiento'
+      }[newStatus] || newStatus;
+      
+      showSuccess(`Mesa ${table.number} marcada como ${statusText}`);
+    }
   };
 
   const todayReservations = mockReservations.filter(res => res.date === selectedDate);
@@ -93,7 +109,7 @@ const TableManagement: React.FC = () => {
                 Estadísticas
               </button>
               <button
-                onClick={() => alert('Función de nueva reserva en desarrollo')}
+                onClick={() => showSuccess('Función de nueva reserva en desarrollo')}
                 className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
               >
                 <Plus className="w-4 h-4" />
@@ -102,6 +118,17 @@ const TableManagement: React.FC = () => {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Success Message */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+        <SuccessMessage
+          message={successMessage}
+          isVisible={successVisible}
+          onClose={hideSuccess}
+          size="md"
+          position="relative"
+        />
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">

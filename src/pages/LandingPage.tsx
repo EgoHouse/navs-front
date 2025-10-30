@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import LoginForm from '../components/LoginForm';
+import { useAuthWithServices } from '../hooks/useAuthWithServices';
 import Navbar from '../components/Navbar';
 import LocationMap from '../components/LocationMap';
 import Footer from '../components/Footer';
@@ -9,11 +9,22 @@ import MenuCategories from '../components/MenuCategories';
 import CloudinaryVideoBackground from '../components/CloudinaryVideoBackground';
 import SEOHead from '../components/SEOHead';
 import WhatsAppButton from '../components/WhatsAppButton';
+// import DiscoverSpace from './DiscoverSpace';
+import ShishaGallerySection from '../components/ShishaGallerySection';
+import CocktailPersonalizationSection from '../components/CocktailPersonalizationSection';
 
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
-  const [showLogin, setShowLogin] = useState(false);
+  const { user, isAuthenticated } = useAuthWithServices();
   const [isMobileOrTablet, setIsMobileOrTablet] = useState(false);
+
+  // Redirección automática para usuarios admin
+  useEffect(() => {
+    if (isAuthenticated && user && user.role === 'ADMIN') {
+      console.log('Usuario admin detectado en landing page, redirigiendo...');
+      navigate('/admin', { replace: true });
+    }
+  }, [isAuthenticated, user, navigate]);
 
   // Detectar móvil/tablet para desactivar animaciones
   useEffect(() => {
@@ -68,10 +79,6 @@ const LandingPage: React.FC = () => {
         },
       };
 
-  if (showLogin) {
-    return <LoginForm onBack={() => setShowLogin(false)} />;
-  }
-
   return (
     <>
       {/* SEO Meta Tags */}
@@ -84,7 +91,7 @@ const LandingPage: React.FC = () => {
       />
 
       {/* Navbar Component */}
-      <Navbar onLoginClick={() => setShowLogin(true)} />
+      <Navbar />
 
       {/* Hero Section with Video Background */}
       <main>
@@ -160,21 +167,24 @@ const LandingPage: React.FC = () => {
         </section>
 
         {/* Menu Categories Section */}
-        <section id="menu" className="relative bg-black py-10 pb-50">
+        <section id="menu" className="relative bg-black py-10 pb-20">
           {/* Content */}
           <div className="relative z-10">
             <MenuCategories />
           </div>
         </section>
 
+        {/* Shisha Gallery Section */}
+        <ShishaGallerySection />
+
+        {/* Cocktail Personalization Section */}
+        <CocktailPersonalizationSection />
+
+        {/* <DiscoverSpace /> */}
+
         {/* Location Map Section */}
         <LocationMap />
 
-        {/* Gallery Section - Oculta temporalmente */}
-        {/* <Gallery /> */}
-
-        {/* Events Section - Oculta temporalmente */}
-        {/* <Events /> */}
       </main>
 
       {/* Footer */}

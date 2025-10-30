@@ -8,12 +8,8 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useParams } from 'react-router-dom';
-import {
-  getCategoryBySlug,
-  fullMenuData,
-  type MenuSubcategory,
-  type NewMenuItem,
-} from '../data/menuData';
+import { useCategoryBySlug } from '../hooks/useCatalog';
+import type { MenuSubcategory, MenuItem } from '../types';
 import SEOHead from '../components/SEOHead';
 
 const categoryIcons = {
@@ -27,7 +23,13 @@ const formatPrice = (price: number, currency: string = '€'): string => {
   return `${price.toFixed(2).replace('.00', '')}${currency}`;
 };
 
-const MenuItemComponent: React.FC<{ item: NewMenuItem; currency: string }> = ({
+// Configuración estática del menú
+const MENU_CONFIG = {
+  version: '1.0.1',
+  currency: '€',
+};
+
+const MenuItemComponent: React.FC<{ item: MenuItem; currency: string }> = ({
   item,
   currency,
 }) => (
@@ -51,7 +53,7 @@ const MenuItemComponent: React.FC<{ item: NewMenuItem; currency: string }> = ({
           <div className="text-yellow-400 font-semibold ml-4">
             {item.variants ? (
               <div className="text-right space-y-1">
-                {item.variants.map((variant, idx) => (
+                {item.variants.map((variant: any, idx: number) => (
                   <div key={idx} className="text-sm">
                     <span className="text-gray-300">{variant.size}: </span>
                     {formatPrice(variant.price, currency)}
@@ -111,7 +113,7 @@ const SubcategorySection: React.FC<{
 
     {subcategory.items && (
       <div className="grid gap-4">
-        {subcategory.items.map((item, idx) => (
+        {subcategory.items.map((item: any, idx: number) => (
           <MenuItemComponent key={idx} item={item} currency={currency} />
         ))}
       </div>
@@ -119,13 +121,13 @@ const SubcategorySection: React.FC<{
 
     {subcategory.subsections && (
       <div className="space-y-6">
-        {subcategory.subsections.map((subsection, idx) => (
+        {subcategory.subsections.map((subsection: any, idx: number) => (
           <div key={idx}>
             <h4 className="text-xl font-semibold text-yellow-400 mb-4 border-l-4 border-yellow-400 pl-4 font-['Poppins']">
               {subsection.name}
             </h4>
             <div className="grid gap-4">
-              {subsection.items.map((item, itemIdx) => (
+              {subsection.items.map((item: any, itemIdx: number) => (
                 <MenuItemComponent
                   key={itemIdx}
                   item={item}
@@ -147,12 +149,43 @@ const MenuPage: React.FC = () => {
     null
   );
 
+  // Obtener datos de la API
+  const { category, isLoading, error } = useCategoryBySlug(categorySlug);
+
   // Scroll to top when component mounts
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
-  const category = categorySlug ? getCategoryBySlug(categorySlug) : null;
+  // Manejo de estados de carga
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-white text-xl mb-4">Cargando categoría...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold text-white mb-4">
+            Error al cargar la categoría
+          </h1>
+          <p className="text-red-400 mb-4">{error}</p>
+          <button
+            onClick={() => navigate('/')}
+            className="px-6 py-3 bg-yellow-400 text-black font-semibold rounded-lg hover:bg-yellow-300 transition-colors"
+          >
+            Volver al inicio
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (!category) {
     return (
@@ -176,7 +209,9 @@ const MenuPage: React.FC = () => {
     categoryIcons[category.slug as keyof typeof categoryIcons] || Utensils;
 
   const filteredSubcategories = selectedSubcategory
-    ? category.subcategories.filter((sub) => sub.name === selectedSubcategory)
+    ? category.subcategories.filter(
+        (sub: any) => sub.name === selectedSubcategory
+      )
     : category.subcategories;
 
   return (
@@ -232,7 +267,7 @@ const MenuPage: React.FC = () => {
               </div>
 
               <div className="text-sm text-gray-400">
-                v{fullMenuData.version}
+                v{MENU_CONFIG.version}
               </div>
             </div>
           </div>
@@ -252,7 +287,7 @@ const MenuPage: React.FC = () => {
                   >
                     Todos
                   </button>
-                  {category.subcategories.map((subcategory) => (
+                  {category.subcategories.map((subcategory: any) => (
                     <button
                       key={subcategory.name}
                       onClick={() => setSelectedSubcategory(subcategory.name)}
@@ -281,11 +316,11 @@ const MenuPage: React.FC = () => {
                 transition={{ duration: 0.3 }}
                 className="space-y-8"
               >
-                {filteredSubcategories.map((subcategory, idx) => (
+                {filteredSubcategories.map((subcategory: any, idx: number) => (
                   <SubcategorySection
                     key={idx}
                     subcategory={subcategory}
-                    currency={fullMenuData.currency}
+                    currency={MENU_CONFIG.currency}
                     isSignature={subcategory.type === 'signature'}
                   />
                 ))}
@@ -297,7 +332,7 @@ const MenuPage: React.FC = () => {
           <div className="bg-black/40 backdrop-blur-sm border-t border-gray-700/50 py-6 mt-12">
             <div className="max-w-6xl mx-auto px-4 text-center">
               <p className="text-gray-400 text-sm">
-                Carta actualizada • Precios en {fullMenuData.currency} • IVA
+                Carta actualizada • Precios en {MENU_CONFIG.currency} • IVA
                 incluido
               </p>
             </div>

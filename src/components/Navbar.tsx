@@ -1,17 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X } from 'lucide-react';
+import { useAuthWithServices } from '../hooks/useAuthWithServices';
 
 interface NavbarProps {
-  onLoginClick: () => void;
+  onLoginClick?: () => void;
 }
 
-const Navbar: React.FC<NavbarProps> = ({ onLoginClick }) => {
+const Navbar: React.FC<NavbarProps> = () => {
+  const { isAuthenticated } = useAuthWithServices();
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Hook para detectar el scroll
   useEffect(() => {
+    console.log('Navbar mounted, isAuthenticated:', isAuthenticated);
     const handleScroll = () => {
       const isScrolled = window.scrollY > 100;
       setScrolled(isScrolled);
@@ -19,7 +22,12 @@ const Navbar: React.FC<NavbarProps> = ({ onLoginClick }) => {
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [isAuthenticated]);
+
+  // Log cambios en el estado de autenticación
+  useEffect(() => {
+    console.log('Navbar: Auth state changed:', { isAuthenticated });
+  }, [isAuthenticated]);
 
   // Cerrar menú móvil cuando se hace scroll
   useEffect(() => {
@@ -49,10 +57,10 @@ const Navbar: React.FC<NavbarProps> = ({ onLoginClick }) => {
   const menuItems = [
     { name: 'Inicio', id: 'hero' },
     { name: 'Carta', id: 'menu' },
+    { name: 'Cachimbas', id: 'shisha-gallery' },
+    { name: 'Cocktails', id: 'cocktails' },
+    // { name: 'Espacios', id: 'discover-space' },
     { name: 'Ubicación', id: 'location' },
-    // { name: 'Galería', id: 'gallery' }, // Oculto temporalmente
-    // { name: 'Eventos', id: 'events' }, // Oculto temporalmente
-    { name: 'Contacto', id: 'contact' }
   ];
 
   const scrollToSection = (sectionId: string) => {
@@ -77,18 +85,8 @@ const Navbar: React.FC<NavbarProps> = ({ onLoginClick }) => {
         }`}
       >
         <div className="max-w-7xl mx-auto px-6 lg:px-8 py-4">
-          <div className="flex justify-between items-center">
-            {/* Logo - Más simple */}
-            <motion.div
-              whileHover={{ scale: 1.02 }}
-              className="flex items-center"
-            >
-              <span className="text-2xl font-light text-white tracking-wider">
-                EGO HOUSE
-              </span>
-            </motion.div>
-
-            {/* Desktop Navigation - Más limpio */}
+          <div className="flex justify-center items-center md:justify-center relative">
+            {/* Desktop Navigation - Centrado */}
             <div className="hidden md:flex items-center gap-1">
               {menuItems.map((item) => (
                 <motion.button
@@ -102,23 +100,13 @@ const Navbar: React.FC<NavbarProps> = ({ onLoginClick }) => {
               ))}
             </div>
 
-            {/* Desktop Login Button - Más minimalista */}
-            <motion.button
-              onClick={onLoginClick}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="hidden md:block px-6 py-2 text-white  border-white/20 rounded-full hover:bg-white/5 transition-all duration-300 text-sm font-medium"
-            >
-              {/* Login */}
-            </motion.button>
-
-            {/* Mobile Menu Button */}
+            {/* Mobile Menu Button - Positioned to the right */}
             <motion.button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               whileHover={{ scale: 1.05 }}
-              className="md:hidden p-2 text-white/70 hover:text-white transition-colors duration-300"
+              className="md:hidden absolute right-2 top-1 p-3 text-white/70 hover:text-white transition-colors duration-300 bg-white/5 rounded-lg backdrop-blur-sm border border-white/10"
             >
-              {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+              {mobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
             </motion.button>
           </div>
         </div>
@@ -147,10 +135,7 @@ const Navbar: React.FC<NavbarProps> = ({ onLoginClick }) => {
             >
               <div className="flex flex-col h-full p-6">
                 {/* Header */}
-                <div className="flex items-center justify-between mb-12 pt-4">
-                  <span className="text-xl font-light text-white tracking-wider">
-                    EGO HOUSE
-                  </span>
+                <div className="flex items-center justify-end mb-12 pt-4">
                   <motion.button
                     onClick={() => setMobileMenuOpen(false)}
                     whileHover={{ scale: 1.1 }}
@@ -174,24 +159,39 @@ const Navbar: React.FC<NavbarProps> = ({ onLoginClick }) => {
                       {item.name}
                     </motion.button>
                   ))}
-                </div>
 
-                {/* Login Button */}
-                <motion.button
-                  onClick={() => {
-                    onLoginClick();
-                    setMobileMenuOpen(false);
-                  }}
-                  whileHover={{ scale: 1.02 }}
-                  className="w-full border border-white/20 text-white py-3 px-6 rounded-full hover:bg-white/5 transition-all duration-300"
-                >
-                  Acceder
-                </motion.button>
+                  {/* Authentication Area in Mobile Menu
+                  <div className="pt-4 border-t border-white/10">
+                    {isAuthenticated ? (
+                      <div className="px-4">
+                        <UserMenu />
+                      </div>
+                    ) : (
+                      <motion.button
+                        onClick={() => {
+                          handleLoginClick();
+                          setMobileMenuOpen(false);
+                        }}
+                        whileHover={{ scale: 1.02 }}
+                        className="w-full border border-white/20 text-white py-3 px-6 rounded-full hover:bg-white/5 transition-all duration-300 flex items-center justify-center gap-2"
+                      >
+                        <LogIn size={16} />
+                        Acceder
+                      </motion.button>
+                    )}
+                  </div> */}
+                </div>
               </div>
             </motion.div>
           </>
         )}
       </AnimatePresence>
+
+      {/* Auth Modal
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+      /> */}
     </>
   );
 };

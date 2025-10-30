@@ -2,37 +2,17 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { getAllCategories } from '../data/menuData';
+
 
 const MenuCategories: React.FC = () => {
   const navigate = useNavigate();
-  const menuCategories = getAllCategories();
-
-  // Calcular el total de items en todas las categorías
-  const totalItems = menuCategories.reduce((total, category) => {
-    return (
-      total +
-      category.subcategories.reduce((subTotal, subcategory) => {
-        if (subcategory.items) {
-          return subTotal + subcategory.items.length;
-        }
-        if (subcategory.subsections) {
-          return (
-            subTotal +
-            subcategory.subsections.reduce(
-              (subSubTotal, subsection) =>
-                subSubTotal + subsection.items.length,
-              0
-            )
-          );
-        }
-        return subTotal;
-      }, 0)
-    );
-  }, 0);
 
   const handleMenuClick = () => {
     navigate('/menu/general');
+  };
+
+  const handleShishaClick = () => {
+    navigate('/shisha');
   };
 
   const containerVariants = {
@@ -57,6 +37,7 @@ const MenuCategories: React.FC = () => {
       },
     },
   };
+
 
   return (
     <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 font-['Poppins']">
@@ -113,9 +94,9 @@ const MenuCategories: React.FC = () => {
           <div className="relative h-96 flex flex-col justify-between p-8 text-white">
             {/* Header */}
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium bg-white/20 px-3 py-1 rounded-full backdrop-blur-sm">
+              {/* <span className="text-sm font-medium bg-white/20 px-3 py-1 rounded-full backdrop-blur-sm">
                 {totalItems} productos
-              </span>
+              </span> */}
             </div>
 
             {/* Content */}
@@ -143,7 +124,7 @@ const MenuCategories: React.FC = () => {
             y: -8,
             transition: { type: 'spring', stiffness: 400, damping: 25 },
           }}
-          onClick={() => navigate('/shisha')}
+          onClick={handleShishaClick}
           className="group relative cursor-pointer overflow-hidden"
         >
           {/* Background Image */}
@@ -179,30 +160,6 @@ const MenuCategories: React.FC = () => {
             </div>
           </div>
         </motion.div>
-      </motion.div>
-
-      {/* Gallery Button - Fuera del grid pero alineado con la card de cachimbas */}
-      <motion.div
-        variants={itemVariants}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true }}
-        className="max-w-6xl mx-auto mt-6"
-      >
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Espacio vacío para alinear con la primera card */}
-          <div className="hidden lg:block"></div>
-
-          {/* Botón alineado con la segunda card */}
-          <div className="flex justify-center">
-            <button
-              onClick={() => navigate('/galeria-cachimbas')}
-              className="bg-transparent border border-white text-white px-8 py-3 font-light hover:bg-white hover:text-black transition-all duration-300 text-sm backdrop-blur-sm rounded-lg"
-            >
-              Ver galería
-            </button>
-          </div>
-        </div>
       </motion.div>
     </div>
   );
