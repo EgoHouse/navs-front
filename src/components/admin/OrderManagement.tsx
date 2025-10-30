@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Package, 
-  Search, 
-  Eye, 
-  Edit, 
-  Trash2, 
-  CheckCircle, 
+import {
+  Package,
+  Search,
+  Eye,
+  Edit,
+  Trash2,
+  CheckCircle,
   XCircle,
   DollarSign,
   Users,
@@ -18,7 +18,7 @@ import {
   ChevronRight,
   Play,
   RefreshCw,
-  ChevronLeft
+  ChevronLeft,
 } from 'lucide-react';
 import { orderService } from '../../services';
 import { useSuccessMessage } from '../../hooks';
@@ -34,11 +34,18 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
   const [stats, setStats] = useState<OrderStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
-  const { isVisible: successVisible, message: successMessage, showSuccess, hideSuccess } = useSuccessMessage();
+  const {
+    isVisible: successVisible,
+    message: successMessage,
+    showSuccess,
+    hideSuccess,
+  } = useSuccessMessage();
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [loadingOrders, setLoadingOrders] = useState<Record<string, string>>({}); // {orderId: 'action'}
+  const [loadingOrders, setLoadingOrders] = useState<Record<string, string>>(
+    {}
+  ); // {orderId: 'action'}
   const [refreshing, setRefreshing] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState({
@@ -46,162 +53,176 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
     search: '',
     startDate: '',
     endDate: '',
-    status: '' // 'open', 'closed', '' (todos)
+    status: '', // 'open', 'closed', '' (todos)
   });
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(15);
   const [showOnlyToday, setShowOnlyToday] = useState(true); // Nuevo: mostrar solo pedidos de hoy por defecto
 
-  // Función para determinar si un pedido es de "hoy" (jornada de 10:00 AM a 01:00 AM del día siguiente)
+  // Función para determinar si un pedido es de "hoy" (jornada desde las 01:01 AM hasta las 01:00 AM del día siguiente)
   const isOrderFromToday = useCallback((orderDate: string) => {
     const order = new Date(orderDate);
     const now = new Date();
-    
+
     // Determinar cuál es el día de la jornada actual
     let currentJourneyDate = new Date(now);
-    
+
     // Si estamos entre las 00:00 y 01:00, la jornada pertenece al día anterior
-    if (now.getHours() < 1) {
+    if (
+      now.getHours() === 0 ||
+      (now.getHours() === 1 && now.getMinutes() === 0)
+    ) {
       currentJourneyDate.setDate(currentJourneyDate.getDate() - 1);
     }
-    // Si estamos entre las 01:00 y 10:00, aún no ha empezado la jornada de hoy
-    else if (now.getHours() < 10) {
-      currentJourneyDate.setDate(currentJourneyDate.getDate() - 1);
-    }
-    
-    // Inicio de la jornada: 10:00 AM del día de la jornada
+
+    // Inicio de la jornada: 01:01 AM del día de la jornada
     const journeyStart = new Date(currentJourneyDate);
-    journeyStart.setHours(10, 0, 0, 0);
-    
+    journeyStart.setHours(1, 1, 0, 0);
+
     // Fin de la jornada: 01:00 AM del día siguiente
     const journeyEnd = new Date(currentJourneyDate);
     journeyEnd.setDate(journeyEnd.getDate() + 1);
-    journeyEnd.setHours(1, 0, 0, 0);
-    
-    return order >= journeyStart && order < journeyEnd;
+    journeyEnd.setHours(1, 0, 59, 999);
+
+    return order >= journeyStart && order <= journeyEnd;
   }, []);
 
-  // Función para determinar si un pedido cuenta para los ingresos (jornada de 10:00 AM a 05:00 AM del día siguiente)
+  // Función para determinar si un pedido cuenta para los ingresos (jornada desde las 01:01 AM hasta las 05:00 AM del día siguiente)
   const isOrderForRevenue = useCallback((orderDate: string) => {
     const order = new Date(orderDate);
     const now = new Date();
-    
+
     // Determinar cuál es el día de la jornada actual para ingresos
     let currentJourneyDate = new Date(now);
-    
+
     // Si estamos entre las 00:00 y 05:00, la jornada pertenece al día anterior
-    if (now.getHours() < 5) {
+    if (
+      now.getHours() < 5 ||
+      (now.getHours() === 5 && now.getMinutes() === 0)
+    ) {
       currentJourneyDate.setDate(currentJourneyDate.getDate() - 1);
     }
-    // Si estamos entre las 05:00 y 10:00, aún no ha empezado la jornada de hoy
-    else if (now.getHours() < 10) {
-      currentJourneyDate.setDate(currentJourneyDate.getDate() - 1);
-    }
-    
-    // Inicio de la jornada: 10:00 AM del día de la jornada
+
+    // Inicio de la jornada: 01:01 AM del día de la jornada
     const journeyStart = new Date(currentJourneyDate);
-    journeyStart.setHours(10, 0, 0, 0);
-    
-    // Fin de la jornada para ingresos: 05:00 AM del día siguiente
+    journeyStart.setHours(1, 1, 0, 0);
+
+    // Fin de la jornada para ingresos: 01:00 AM del día siguiente
     const journeyEnd = new Date(currentJourneyDate);
     journeyEnd.setDate(journeyEnd.getDate() + 1);
-    journeyEnd.setHours(5, 0, 0, 0);
-    
+    journeyEnd.setHours(1, 0, 0, 0);
+
     return order >= journeyStart && order < journeyEnd;
   }, []);
 
   // Función para filtrar pedidos del lado del cliente
-  const filterOrders = useCallback((ordersToFilter: Order[]) => {
-    let filteredOrders = [...ordersToFilter];
+  const filterOrders = useCallback(
+    (ordersToFilter: Order[]) => {
+      let filteredOrders = [...ordersToFilter];
 
-    // Filtro por "solo hoy" (prioritario)
-    if (showOnlyToday) {
-      filteredOrders = filteredOrders.filter(order => isOrderFromToday(order.createdAt));
-    }
+      // Filtro por "solo hoy" (prioritario)
+      if (showOnlyToday) {
+        filteredOrders = filteredOrders.filter((order) =>
+          isOrderFromToday(order.createdAt)
+        );
+      }
 
-    // Filtro por término de búsqueda
-    if (searchTerm && searchTerm.trim()) {
-      const searchLower = searchTerm.toLowerCase().trim();
-      filteredOrders = filteredOrders.filter(order => {
-        const matchesSearch = 
-          order.name.toLowerCase().includes(searchLower) ||
-          order.email.toLowerCase().includes(searchLower) ||
-          order.phone.toLowerCase().includes(searchLower) ||
-          (order.address && order.address.toLowerCase().includes(searchLower)) ||
-          (order.trackingNumber && order.trackingNumber.toLowerCase().includes(searchLower));
-        
-        return matchesSearch;
-      });
-    }
+      // Filtro por término de búsqueda
+      if (searchTerm && searchTerm.trim()) {
+        const searchLower = searchTerm.toLowerCase().trim();
+        filteredOrders = filteredOrders.filter((order) => {
+          const matchesSearch =
+            order.name.toLowerCase().includes(searchLower) ||
+            order.email.toLowerCase().includes(searchLower) ||
+            order.phone.toLowerCase().includes(searchLower) ||
+            (order.address &&
+              order.address.toLowerCase().includes(searchLower)) ||
+            (order.trackingNumber &&
+              order.trackingNumber.toLowerCase().includes(searchLower));
 
-    // Filtro por tipo
-    if (filters.type && filters.type !== '') {
-      filteredOrders = filteredOrders.filter(order => order.type === filters.type);
-    }
+          return matchesSearch;
+        });
+      }
 
-    // Filtro por estado
-    if (filters.status && filters.status !== '') {
-      filteredOrders = filteredOrders.filter(order => order.status === filters.status);
-    }
+      // Filtro por tipo
+      if (filters.type && filters.type !== '') {
+        filteredOrders = filteredOrders.filter(
+          (order) => order.type === filters.type
+        );
+      }
 
-    // Filtro por fecha de inicio
-    if (filters.startDate && filters.startDate !== '') {
-      const startDate = new Date(filters.startDate);
-      startDate.setHours(0, 0, 0, 0); // Inicio del día
-      filteredOrders = filteredOrders.filter(order => {
-        const orderDate = new Date(order.createdAt);
-        return orderDate >= startDate;
-      });
-    }
+      // Filtro por estado
+      if (filters.status && filters.status !== '') {
+        filteredOrders = filteredOrders.filter(
+          (order) => order.status === filters.status
+        );
+      }
 
-    // Filtro por fecha de fin
-    if (filters.endDate && filters.endDate !== '') {
-      const endDate = new Date(filters.endDate);
-      endDate.setHours(23, 59, 59, 999); // Final del día
-      filteredOrders = filteredOrders.filter(order => {
-        const orderDate = new Date(order.createdAt);
-        return orderDate <= endDate;
-      });
-    }
+      // Filtro por fecha de inicio
+      if (filters.startDate && filters.startDate !== '') {
+        const startDate = new Date(filters.startDate);
+        startDate.setHours(0, 0, 0, 0); // Inicio del día
+        filteredOrders = filteredOrders.filter((order) => {
+          const orderDate = new Date(order.createdAt);
+          return orderDate >= startDate;
+        });
+      }
 
-    return filteredOrders;
-  }, [searchTerm, filters, showOnlyToday, isOrderFromToday]);
+      // Filtro por fecha de fin
+      if (filters.endDate && filters.endDate !== '') {
+        const endDate = new Date(filters.endDate);
+        endDate.setHours(23, 59, 59, 999); // Final del día
+        filteredOrders = filteredOrders.filter((order) => {
+          const orderDate = new Date(order.createdAt);
+          return orderDate <= endDate;
+        });
+      }
+
+      return filteredOrders;
+    },
+    [searchTerm, filters, showOnlyToday, isOrderFromToday]
+  );
 
   // Estado para guardar todos los pedidos (sin filtrar)
   const [allOrders, setAllOrders] = useState<Order[]>([]);
 
   // Función para cargar pedidos
-  const loadOrders = useCallback(async (showLoading = false) => {
-    try {
-      if (showLoading) {
-        setLoading(true);
+  const loadOrders = useCallback(
+    async (showLoading = false) => {
+      try {
+        if (showLoading) {
+          setLoading(true);
+        }
+        setError('');
+
+        // Por ahora, cargamos todos los pedidos y filtramos del lado del cliente
+        // para asegurar que el filtrado funcione correctamente
+        const data = await orderService.getAllOrders();
+
+        // Guardar todos los pedidos para referencia
+        setAllOrders(data);
+
+        // Aplicar filtros del lado del cliente
+        const filteredData = filterOrders(data);
+
+        // Ordenar por fecha de creación (más recientes primero)
+        const sortedData = filteredData.sort((a, b) => {
+          return (
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          );
+        });
+
+        setOrders(sortedData);
+      } catch (error: any) {
+        setError(error.message || 'Error al cargar pedidos');
+      } finally {
+        if (showLoading) {
+          setLoading(false);
+        }
       }
-      setError('');
-      
-      // Por ahora, cargamos todos los pedidos y filtramos del lado del cliente
-      // para asegurar que el filtrado funcione correctamente
-      const data = await orderService.getAllOrders();
-      
-      // Guardar todos los pedidos para referencia
-      setAllOrders(data);
-      
-      // Aplicar filtros del lado del cliente
-      const filteredData = filterOrders(data);
-      
-      // Ordenar por fecha de creación (más recientes primero)
-      const sortedData = filteredData.sort((a, b) => {
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-      });
-      
-      setOrders(sortedData);
-    } catch (error: any) {
-      setError(error.message || 'Error al cargar pedidos');
-    } finally {
-      if (showLoading) {
-        setLoading(false);
-      }
-    }
-  }, [filterOrders]);
+    },
+    [filterOrders]
+  );
 
   // Cargar pedidos y estadísticas al montar el componente
   useEffect(() => {
@@ -209,21 +230,29 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
       try {
         setLoading(true);
         setError('');
-        await Promise.all([loadOrders(false), loadStats()]);
+        await loadOrders(false);
+        // loadStats se llamará después de que allOrders esté actualizado
       } catch (error: any) {
         setError(error.message || 'Error al cargar datos');
       } finally {
         setLoading(false);
       }
     };
-    
+
     initialLoad();
   }, [loadOrders]);
+
+  // Actualizar estadísticas cuando cambien allOrders
+  useEffect(() => {
+    if (allOrders.length > 0) {
+      loadStats();
+    }
+  }, [allOrders]);
 
   // Debounce para el término de búsqueda
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      setFilters(prev => ({ ...prev, search: searchTerm }));
+      setFilters((prev) => ({ ...prev, search: searchTerm }));
     }, 300);
 
     return () => clearTimeout(timeoutId);
@@ -245,7 +274,7 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
   // Bloquear scroll del body cuando algún modal esté abierto
   useEffect(() => {
     const isModalOpen = selectedOrder || isEditModalOpen || isDeleteModalOpen;
-    
+
     if (isModalOpen) {
       // Prevenir scroll del body agregando overflow hidden
       document.body.style.overflow = 'hidden';
@@ -291,14 +320,23 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
   const loadStats = async () => {
     try {
       const data = await orderService.getOrderStats();
-      
-      // Recalcular ingresos totales con base en la jornada actual (10:00 AM - 05:00 AM)
-      const ordersForRevenue = orders.filter(order => isOrderForRevenue(order.createdAt));
-      const journeyRevenue = ordersForRevenue.reduce((sum, order) => sum + (order.price || 0), 0);
-      
+
+      // Recalcular ingresos totales con base en la jornada actual (01:01 AM - 05:00 AM)
+      // Solo contar pedidos cerrados y entregados
+      const ordersForRevenue = allOrders.filter(
+        (order) =>
+          isOrderForRevenue(order.createdAt) &&
+          order.status === 'closed' &&
+          order.eventStatus === OrderEventStatus.ENTREGADO
+      );
+      const journeyRevenue = ordersForRevenue.reduce(
+        (sum, order) => sum + (order.price || 0),
+        0
+      );
+
       setStats({
         ...data,
-        totalRevenue: journeyRevenue
+        totalRevenue: journeyRevenue,
       });
     } catch (error: any) {
       setError(error.message || 'Error al cargar estadísticas');
@@ -309,7 +347,8 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
     try {
       setRefreshing(true);
       setError('');
-      await Promise.all([loadOrders(false), loadStats()]);
+      await loadOrders(false);
+      // loadStats se actualizará automáticamente cuando allOrders cambie
       showMessage('Pedidos actualizados correctamente');
     } catch (error: any) {
       showMessage(error.message || 'Error al actualizar pedidos', true);
@@ -328,7 +367,7 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
   };
 
   const setOrderLoading = (orderId: string, action: string | null) => {
-    setLoadingOrders(prev => {
+    setLoadingOrders((prev) => {
       if (action === null) {
         const { [orderId]: _, ...rest } = prev;
         return rest;
@@ -347,11 +386,11 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
 
   const handleDeleteOrder = async () => {
     if (!selectedOrder) return;
-    
+
     try {
       setOrderLoading(selectedOrder.id, 'deleting');
       await orderService.deleteOrder(selectedOrder.id);
-      setOrders(orders.filter(order => order.id !== selectedOrder.id));
+      setOrders(orders.filter((order) => order.id !== selectedOrder.id));
       setIsDeleteModalOpen(false);
       setSelectedOrder(null);
       showMessage('Pedido eliminado exitosamente');
@@ -369,7 +408,7 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
     try {
       const action = order.status === 'closed' ? 'reopening' : 'closing';
       setOrderLoading(order.id, action);
-      
+
       // If currently 'closed' => reopen (set to 'open'), otherwise close (set to 'closed')
       if (order.status === 'closed') {
         await orderService.reopenOrder(order.id);
@@ -388,11 +427,16 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
 
   const getNextEventStatus = (currentStatus: string): string | null => {
     switch (currentStatus) {
-      case OrderEventStatus.RECIBIDO: return OrderEventStatus.EN_PREPARACION;
-      case OrderEventStatus.EN_PREPARACION: return OrderEventStatus.EN_CAMINO;
-      case OrderEventStatus.EN_CAMINO: return OrderEventStatus.ENTREGADO;
-      case OrderEventStatus.ENTREGADO: return null; // Ya está en el último estado
-      default: return OrderEventStatus.RECIBIDO; // Si no tiene estado o es inválido, empezar desde el principio
+      case OrderEventStatus.RECIBIDO:
+        return OrderEventStatus.EN_PREPARACION;
+      case OrderEventStatus.EN_PREPARACION:
+        return OrderEventStatus.EN_CAMINO;
+      case OrderEventStatus.EN_CAMINO:
+        return OrderEventStatus.ENTREGADO;
+      case OrderEventStatus.ENTREGADO:
+        return null; // Ya está en el último estado
+      default:
+        return OrderEventStatus.RECIBIDO; // Si no tiene estado o es inválido, empezar desde el principio
     }
   };
 
@@ -403,11 +447,11 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
         showMessage('El pedido ya está en el estado final', true);
         return;
       }
-      
+
       setOrderLoading(order.id, 'advancing');
-      
+
       await orderService.advanceOrderEventStatus(order.id, nextStatus);
-      
+
       // Si el estado del evento avanza a "entregado", cerrar automáticamente el pedido
       if (nextStatus === OrderEventStatus.ENTREGADO) {
         await orderService.closeOrder(order.id);
@@ -415,10 +459,13 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
       } else {
         showMessage('Estado del evento avanzado exitosamente');
       }
-      
+
       loadOrders(false); // Recargar pedidos
     } catch (error: any) {
-      showMessage(error.message || 'Error al avanzar el estado del evento', true);
+      showMessage(
+        error.message || 'Error al avanzar el estado del evento',
+        true
+      );
     } finally {
       setOrderLoading(order.id, null);
     }
@@ -427,13 +474,16 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
   const handleStartOrder = async (order: Order) => {
     try {
       setOrderLoading(order.id, 'starting');
-      
+
       // Abrir el pedido (cambiar status a 'open')
       await orderService.reopenOrder(order.id);
-      
+
       // Establecer el primer evento (recibido)
-      await orderService.advanceOrderEventStatus(order.id, OrderEventStatus.RECIBIDO);
-      
+      await orderService.advanceOrderEventStatus(
+        order.id,
+        OrderEventStatus.RECIBIDO
+      );
+
       showMessage('Pedido iniciado exitosamente');
       loadOrders(false); // Recargar pedidos
     } catch (error: any) {
@@ -446,22 +496,32 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
   const getEventStatusLabel = (eventStatus?: string) => {
     if (!eventStatus) return 'Sin estado';
     switch (eventStatus) {
-      case OrderEventStatus.RECIBIDO: return 'Recibido';
-      case OrderEventStatus.EN_PREPARACION: return 'En Preparación';
-      case OrderEventStatus.EN_CAMINO: return 'En Camino';
-      case OrderEventStatus.ENTREGADO: return 'Entregado';
-      default: return eventStatus;
+      case OrderEventStatus.RECIBIDO:
+        return 'Recibido';
+      case OrderEventStatus.EN_PREPARACION:
+        return 'En Preparación';
+      case OrderEventStatus.EN_CAMINO:
+        return 'En Camino';
+      case OrderEventStatus.ENTREGADO:
+        return 'Entregado';
+      default:
+        return eventStatus;
     }
   };
 
   const getEventStatusColor = (eventStatus?: string) => {
     if (!eventStatus) return 'bg-gray-100 text-gray-800';
     switch (eventStatus) {
-      case OrderEventStatus.RECIBIDO: return 'bg-yellow-100 text-yellow-800';
-      case OrderEventStatus.EN_PREPARACION: return 'bg-blue-100 text-blue-800';
-      case OrderEventStatus.EN_CAMINO: return 'bg-orange-100 text-orange-800';
-      case OrderEventStatus.ENTREGADO: return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case OrderEventStatus.RECIBIDO:
+        return 'bg-yellow-100 text-yellow-800';
+      case OrderEventStatus.EN_PREPARACION:
+        return 'bg-blue-100 text-blue-800';
+      case OrderEventStatus.EN_CAMINO:
+        return 'bg-orange-100 text-orange-800';
+      case OrderEventStatus.ENTREGADO:
+        return 'bg-green-100 text-green-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -475,7 +535,7 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
       month: '2-digit',
       year: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
     });
   };
 
@@ -485,10 +545,14 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
 
   const getOrderTypeColor = (type: OrderType) => {
     switch (type) {
-      case 'classic': return 'bg-blue-100 text-blue-800';
-      case 'traditional': return 'bg-green-100 text-green-800';
-      case 'premium': return 'bg-purple-100 text-purple-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'classic':
+        return 'bg-blue-100 text-blue-800';
+      case 'traditional':
+        return 'bg-green-100 text-green-800';
+      case 'premium':
+        return 'bg-purple-100 text-purple-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -496,19 +560,27 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
   const getStatusLabel = (status?: string) => {
     if (!status) return 'Desconocido';
     switch (status) {
-      case 'pending': return 'Pendiente';
-      case 'open': return 'Abierto';
-      case 'closed': return 'Cerrado';
-      default: return status;
+      case 'pending':
+        return 'Pendiente';
+      case 'open':
+        return 'Abierto';
+      case 'closed':
+        return 'Cerrado';
+      default:
+        return status;
     }
   };
 
   const getStatusBadgeClass = (status?: string) => {
     switch (status) {
-      case 'pending': return 'bg-yellow-500/20 text-yellow-400';
-      case 'open': return 'bg-green-500/20 text-green-400';
-      case 'closed': return 'bg-gray-600 text-gray-300';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'pending':
+        return 'bg-yellow-500/20 text-yellow-400';
+      case 'open':
+        return 'bg-green-500/20 text-green-400';
+      case 'closed':
+        return 'bg-gray-600 text-gray-300';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -545,25 +617,29 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
       search: '',
       startDate: '',
       endDate: '',
-      status: ''
+      status: '',
     });
     setShowOnlyToday(true); // Volver a mostrar solo pedidos de hoy
   };
 
   // Componente Modal para centrar correctamente en el viewport
-  const Modal: React.FC<{ isOpen: boolean; onClose: () => void; children: React.ReactNode }> = ({ isOpen, onClose, children }) => {
+  const Modal: React.FC<{
+    isOpen: boolean;
+    onClose: () => void;
+    children: React.ReactNode;
+  }> = ({ isOpen, onClose, children }) => {
     if (!isOpen) return null;
-    
+
     return createPortal(
-      <div 
+      <div
         className="fixed inset-0 z-50 flex items-center justify-center p-4"
-        style={{ 
+        style={{
           position: 'fixed',
           top: 0,
           left: 0,
           width: '100vw',
           height: '100vh',
-          zIndex: 9999
+          zIndex: 9999,
         }}
       >
         <div
@@ -632,9 +708,9 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
           className="flex items-center space-x-2 px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           title="Refrescar pedidos"
         >
-          <RefreshCw 
-            size={16} 
-            className={`${refreshing ? 'animate-spin' : ''}`} 
+          <RefreshCw
+            size={16}
+            className={`${refreshing ? 'animate-spin' : ''}`}
           />
           <span>{refreshing ? 'Actualizando...' : 'Refrescar'}</span>
         </button>
@@ -650,8 +726,12 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
           <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-400">Total Pedidos</p>
-                <p className="text-2xl font-bold text-white">{stats.totalOrders}</p>
+                <p className="text-sm font-medium text-gray-400">
+                  Total Pedidos
+                </p>
+                <p className="text-2xl font-bold text-white">
+                  {stats.totalOrders}
+                </p>
               </div>
               <Users className="w-8 h-8 text-blue-400" />
             </div>
@@ -660,11 +740,15 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
           <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-6 group relative">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-400">Ingresos Totales (Hoy)</p>
-                <p className="text-xs text-gray-500 max-h-0 overflow-hidden group-hover:max-h-8 group-hover:mt-0.5 transition-all duration-200">
-                  Jornada actual (10:00 AM - 05:00 AM)
+                <p className="text-sm font-medium text-gray-400">
+                  Ingresos Totales (Hoy)
                 </p>
-                <p className="text-2xl font-bold text-white">{stats.totalRevenue}€</p>
+                <p className="text-xs text-gray-500 max-h-0 overflow-hidden group-hover:max-h-8 group-hover:mt-0.5 transition-all duration-200">
+                  Jornada actual (10:00 AM - 01:00 AM)
+                </p>
+                <p className="text-2xl font-bold text-white">
+                  {stats.totalRevenue}€
+                </p>
               </div>
               <DollarSign className="w-8 h-8 text-green-400" />
             </div>
@@ -676,13 +760,16 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
                 <p className="text-sm font-medium text-gray-400">
                   {showOnlyToday
                     ? 'Abiertos (Hoy)'
-                    : (searchTerm || filters.type || filters.status || filters.startDate || filters.endDate) 
-                      ? 'Abiertos (Filtrados)' 
-                      : 'Pedidos Abiertos'
-                  }
+                    : searchTerm ||
+                      filters.type ||
+                      filters.status ||
+                      filters.startDate ||
+                      filters.endDate
+                    ? 'Abiertos (Filtrados)'
+                    : 'Pedidos Abiertos'}
                 </p>
                 <p className="text-2xl font-bold text-white">
-                  {orders.filter(order => order.status !== 'closed').length}
+                  {orders.filter((order) => order.status !== 'closed').length}
                 </p>
               </div>
               <Unlock className="w-8 h-8 text-green-400" />
@@ -695,13 +782,16 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
                 <p className="text-sm font-medium text-gray-400">
                   {showOnlyToday
                     ? 'Cerrados (Hoy)'
-                    : (searchTerm || filters.type || filters.status || filters.startDate || filters.endDate) 
-                      ? 'Cerrados (Filtrados)' 
-                      : 'Pedidos Cerrados'
-                  }
+                    : searchTerm ||
+                      filters.type ||
+                      filters.status ||
+                      filters.startDate ||
+                      filters.endDate
+                    ? 'Cerrados (Filtrados)'
+                    : 'Pedidos Cerrados'}
                 </p>
                 <p className="text-2xl font-bold text-white">
-                  {orders.filter(order => order.status === 'closed').length}
+                  {orders.filter((order) => order.status === 'closed').length}
                 </p>
               </div>
               <Lock className="w-8 h-8 text-gray-400" />
@@ -720,9 +810,14 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h4 className="text-lg font-semibold text-white">Filtros</h4>
-            {(searchTerm || filters.type || filters.status || filters.startDate || filters.endDate) && (
+            {(searchTerm ||
+              filters.type ||
+              filters.status ||
+              filters.startDate ||
+              filters.endDate) && (
               <p className="text-sm text-gray-400 mt-1">
-                Filtros activos • Mostrando {orders.length} de {allOrders.length} pedidos
+                Filtros activos • Mostrando {orders.length} de{' '}
+                {allOrders.length} pedidos
               </p>
             )}
           </div>
@@ -750,8 +845,12 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
                 Todos
               </button>
             </div>
-            
-            {(searchTerm || filters.type || filters.status || filters.startDate || filters.endDate) && (
+
+            {(searchTerm ||
+              filters.type ||
+              filters.status ||
+              filters.startDate ||
+              filters.endDate) && (
               <button
                 onClick={clearFilters}
                 className="px-3 py-1 text-sm bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 hover:text-white transition-colors"
@@ -761,19 +860,19 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
             )}
           </div>
         </div>
-        
+
         {/* Indicador de rango de fechas cuando está en modo "Solo hoy" */}
         {showOnlyToday && (
           <div className="mb-4 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
             <div className="flex items-center space-x-2">
               <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
               <p className="text-sm text-yellow-400">
-                Mostrando pedidos de la jornada actual (10:00 AM - 01:00 AM)
+                Mostrando pedidos de la jornada actual (01:01 AM - 01:00 AM)
               </p>
             </div>
           </div>
         )}
-        
+
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
@@ -798,7 +897,9 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
             <select
               className="w-full px-3 py-2 bg-gray-900 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400"
               value={filters.status}
-              onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+              onChange={(e) =>
+                setFilters({ ...filters, status: e.target.value })
+              }
             >
               <option value="">Todos los estados</option>
               <option value="pending">Pendientes</option>
@@ -831,7 +932,9 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
               type="date"
               className="w-full px-3 py-2 bg-gray-900 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400"
               value={filters.startDate}
-              onChange={(e) => setFilters({ ...filters, startDate: e.target.value })}
+              onChange={(e) =>
+                setFilters({ ...filters, startDate: e.target.value })
+              }
             />
           </div>
 
@@ -843,7 +946,9 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
               type="date"
               className="w-full px-3 py-2 bg-gray-900 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400"
               value={filters.endDate}
-              onChange={(e) => setFilters({ ...filters, endDate: e.target.value })}
+              onChange={(e) =>
+                setFilters({ ...filters, endDate: e.target.value })
+              }
             />
           </div>
         </div>
@@ -868,13 +973,26 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
                     Solo hoy
                   </span>
                 )}
-                {allOrders.length > 0 && totalOrders !== allOrders.length && !showOnlyToday && (
-                  <span className="text-gray-500"> de {allOrders.length} totales</span>
-                )}
+                {allOrders.length > 0 &&
+                  totalOrders !== allOrders.length &&
+                  !showOnlyToday && (
+                    <span className="text-gray-500">
+                      {' '}
+                      de {allOrders.length} totales
+                    </span>
+                  )}
                 {totalOrders > 0 && (
-                  <> • Mostrando {startIndex + 1}-{Math.min(endIndex, totalOrders)} de {totalOrders}</>
+                  <>
+                    {' '}
+                    • Mostrando {startIndex + 1}-
+                    {Math.min(endIndex, totalOrders)} de {totalOrders}
+                  </>
                 )}
-                {(searchTerm || filters.type || filters.status || filters.startDate || filters.endDate) && (
+                {(searchTerm ||
+                  filters.type ||
+                  filters.status ||
+                  filters.startDate ||
+                  filters.endDate) && (
                   <span className="ml-2 inline-flex items-center px-2 py-1 text-xs bg-yellow-500/20 text-yellow-400 rounded-full">
                     Con filtros
                   </span>
@@ -890,20 +1008,30 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
             <h3 className="text-xl font-semibold mb-2">
               {showOnlyToday
                 ? 'No hay pedidos hoy'
-                : (searchTerm || filters.type || filters.status || filters.startDate || filters.endDate) 
-                  ? 'No se encontraron pedidos' 
-                  : 'No hay pedidos'
-              }
+                : searchTerm ||
+                  filters.type ||
+                  filters.status ||
+                  filters.startDate ||
+                  filters.endDate
+                ? 'No se encontraron pedidos'
+                : 'No hay pedidos'}
             </h3>
             <p>
               {showOnlyToday
                 ? 'No se han realizado pedidos en la jornada actual'
-                : (searchTerm || filters.type || filters.status || filters.startDate || filters.endDate) 
-                  ? 'No se encontraron pedidos con los filtros aplicados' 
-                  : 'Aún no se han realizado pedidos'
-              }
+                : searchTerm ||
+                  filters.type ||
+                  filters.status ||
+                  filters.startDate ||
+                  filters.endDate
+                ? 'No se encontraron pedidos con los filtros aplicados'
+                : 'Aún no se han realizado pedidos'}
             </p>
-            {(searchTerm || filters.type || filters.status || filters.startDate || filters.endDate) && (
+            {(searchTerm ||
+              filters.type ||
+              filters.status ||
+              filters.startDate ||
+              filters.endDate) && (
               <button
                 onClick={clearFilters}
                 className="mt-4 px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors"
@@ -911,14 +1039,17 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
                 Limpiar filtros
               </button>
             )}
-            {showOnlyToday && !searchTerm && !filters.type && !filters.status && (
-              <button
-                onClick={() => setShowOnlyToday(false)}
-                className="mt-4 px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors"
-              >
-                Ver todos los pedidos
-              </button>
-            )}
+            {showOnlyToday &&
+              !searchTerm &&
+              !filters.type &&
+              !filters.status && (
+                <button
+                  onClick={() => setShowOnlyToday(false)}
+                  className="mt-4 px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors"
+                >
+                  Ver todos los pedidos
+                </button>
+              )}
           </div>
         ) : (
           <div className="grid gap-4">
@@ -928,7 +1059,9 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 className={`bg-gray-900/50 border border-gray-600 rounded-lg p-4 hover:border-gray-500 transition-colors group ${
-                  isOrderLoading(order.id) ? 'opacity-75 pointer-events-none' : ''
+                  isOrderLoading(order.id)
+                    ? 'opacity-75 pointer-events-none'
+                    : ''
                 }`}
               >
                 <div className="flex items-start justify-between">
@@ -936,33 +1069,53 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
                     <div className="flex items-start justify-between mb-3">
                       <div>
                         <div className="flex items-center space-x-2 mb-1">
-                          <h6 className="font-medium text-white truncate">{order.name}</h6>
-                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusBadgeClass(order.status)}`}>
+                          <h6 className="font-medium text-white truncate">
+                            {order.name}
+                          </h6>
+                          <span
+                            className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusBadgeClass(
+                              order.status
+                            )}`}
+                          >
                             {getStatusLabel(order.status)}
                           </span>
                         </div>
                         <p className="text-gray-400 text-sm">{order.email}</p>
                         <p className="text-gray-400 text-sm">{order.phone}</p>
                         {order.address && (
-                          <p className="text-gray-400 text-sm">{order.address}</p>
+                          <p className="text-gray-400 text-sm">
+                            {order.address}
+                          </p>
                         )}
                       </div>
                       <div className="text-right ml-4">
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getOrderTypeColor(order.type)}`}>
+                        <span
+                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getOrderTypeColor(
+                            order.type
+                          )}`}
+                        >
                           {getOrderTypeLabel(order.type)}
                         </span>
-                        <p className="text-white font-bold mt-1">{order.price}€</p>
+                        <p className="text-white font-bold mt-1">
+                          {order.price}€
+                        </p>
                         {order.eventStatus && order.status !== 'pending' && (
-                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full mt-1 ${getEventStatusColor(order.eventStatus)}`}>
+                          <span
+                            className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full mt-1 ${getEventStatusColor(
+                              order.eventStatus
+                            )}`}
+                          >
                             {getEventStatusLabel(order.eventStatus)}
                           </span>
                         )}
                         {order.trackingNumber && (
-                          <p className="text-gray-400 text-xs mt-1">#{order.trackingNumber}</p>
+                          <p className="text-gray-400 text-xs mt-1">
+                            #{order.trackingNumber}
+                          </p>
                         )}
                       </div>
                     </div>
-                    
+
                     <div className="flex items-center justify-between text-sm">
                       <div className="flex items-center space-x-4 text-gray-400">
                         <span>Cantidad: {order.quantity}</span>
@@ -971,11 +1124,16 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
                           <div className="flex items-center space-x-2 text-yellow-400">
                             <Loader2 size={14} className="animate-spin" />
                             <span className="text-xs capitalize">
-                              {getOrderLoadingAction(order.id) === 'starting' && 'Iniciando...'}
-                              {getOrderLoadingAction(order.id) === 'closing' && 'Cerrando...'}
-                              {getOrderLoadingAction(order.id) === 'reopening' && 'Reabriendo...'}
-                              {getOrderLoadingAction(order.id) === 'advancing' && 'Avanzando...'}
-                              {getOrderLoadingAction(order.id) === 'deleting' && 'Eliminando...'}
+                              {getOrderLoadingAction(order.id) === 'starting' &&
+                                'Iniciando...'}
+                              {getOrderLoadingAction(order.id) === 'closing' &&
+                                'Cerrando...'}
+                              {getOrderLoadingAction(order.id) ===
+                                'reopening' && 'Reabriendo...'}
+                              {getOrderLoadingAction(order.id) ===
+                                'advancing' && 'Avanzando...'}
+                              {getOrderLoadingAction(order.id) === 'deleting' &&
+                                'Eliminando...'}
                             </span>
                           </div>
                         )}
@@ -988,7 +1146,7 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
                       </div>
                     )}
                   </div>
-                  
+
                   <div className="flex items-center space-x-2 ml-4 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all">
                     <button
                       onClick={() => setSelectedOrder(order)}
@@ -1009,7 +1167,7 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
                     >
                       <Edit size={16} />
                     </button>
-                    
+
                     {/* Mostrar botón "Empezar" solo cuando está en pending */}
                     {order.status === 'pending' ? (
                       <button
@@ -1034,9 +1192,14 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
                               ? 'text-green-400 hover:bg-green-500/10'
                               : 'text-orange-400 hover:bg-orange-500/10'
                           }`}
-                          title={order.status === 'closed' ? 'Reabrir pedido' : 'Cerrar pedido'}
+                          title={
+                            order.status === 'closed'
+                              ? 'Reabrir pedido'
+                              : 'Cerrar pedido'
+                          }
                         >
-                          {getOrderLoadingAction(order.id) === 'reopening' || getOrderLoadingAction(order.id) === 'closing' ? (
+                          {getOrderLoadingAction(order.id) === 'reopening' ||
+                          getOrderLoadingAction(order.id) === 'closing' ? (
                             <Loader2 size={16} className="animate-spin" />
                           ) : order.status === 'closed' ? (
                             <Unlock size={16} />
@@ -1044,23 +1207,25 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
                             <Lock size={16} />
                           )}
                         </button>
-                        {canAdvanceEvent(order.eventStatus) && order.status !== 'closed' && (
-                          <button
-                            onClick={() => handleAdvanceEventStatus(order)}
-                            disabled={isOrderLoading(order.id)}
-                            className="p-2 text-purple-400 hover:bg-purple-500/10 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                            title="Siguiente Evento"
-                          >
-                            {getOrderLoadingAction(order.id) === 'advancing' ? (
-                              <Loader2 size={16} className="animate-spin" />
-                            ) : (
-                              <ChevronRight size={16} />
-                            )}
-                          </button>
-                        )}
+                        {canAdvanceEvent(order.eventStatus) &&
+                          order.status !== 'closed' && (
+                            <button
+                              onClick={() => handleAdvanceEventStatus(order)}
+                              disabled={isOrderLoading(order.id)}
+                              className="p-2 text-purple-400 hover:bg-purple-500/10 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                              title="Siguiente Evento"
+                            >
+                              {getOrderLoadingAction(order.id) ===
+                              'advancing' ? (
+                                <Loader2 size={16} className="animate-spin" />
+                              ) : (
+                                <ChevronRight size={16} />
+                              )}
+                            </button>
+                          )}
                       </>
                     )}
-                    
+
                     <button
                       onClick={() => {
                         setSelectedOrder(order);
@@ -1085,7 +1250,7 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
             <div className="text-sm text-gray-400">
               Página {currentPage} de {totalPages}
             </div>
-            
+
             <div className="flex items-center space-x-2">
               {/* Botón Anterior */}
               <button
@@ -1142,8 +1307,10 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
       </motion.div>
 
       {/* Modal de detalles del pedido */}
-      <Modal 
-        isOpen={selectedOrder !== null && !isEditModalOpen && !isDeleteModalOpen} 
+      <Modal
+        isOpen={
+          selectedOrder !== null && !isEditModalOpen && !isDeleteModalOpen
+        }
         onClose={() => setSelectedOrder(null)}
       >
         <AnimatePresence>
@@ -1160,7 +1327,9 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
                   <h3 className="text-xl font-bold text-white">
                     Detalles del Pedido
                   </h3>
-                  <p className="text-gray-400 text-sm">Información completa del pedido</p>
+                  <p className="text-gray-400 text-sm">
+                    Información completa del pedido
+                  </p>
                 </div>
                 <button
                   onClick={() => setSelectedOrder(null)}
@@ -1182,7 +1351,11 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
                     <label className="block text-sm font-medium text-gray-300 mb-1">
                       Estado
                     </label>
-                    <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${getStatusBadgeClass(selectedOrder.status)}`}>
+                    <span
+                      className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${getStatusBadgeClass(
+                        selectedOrder.status
+                      )}`}
+                    >
                       {getStatusLabel(selectedOrder.status)}
                     </span>
                   </div>
@@ -1196,7 +1369,11 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
                     <label className="block text-sm font-medium text-gray-300 mb-1">
                       Tipo de Pedido
                     </label>
-                    <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${getOrderTypeColor(selectedOrder.type)}`}>
+                    <span
+                      className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${getOrderTypeColor(
+                        selectedOrder.type
+                      )}`}
+                    >
                       {getOrderTypeLabel(selectedOrder.type)}
                     </span>
                   </div>
@@ -1224,19 +1401,25 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
                     <label className="block text-sm font-medium text-gray-300 mb-1">
                       Precio Total
                     </label>
-                    <p className="text-yellow-400 font-bold text-lg">{selectedOrder.price}€</p>
+                    <p className="text-yellow-400 font-bold text-lg">
+                      {selectedOrder.price}€
+                    </p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-300 mb-1">
                       Fecha de Pedido
                     </label>
-                    <p className="text-white">{formatDate(selectedOrder.createdAt)}</p>
+                    <p className="text-white">
+                      {formatDate(selectedOrder.createdAt)}
+                    </p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-300 mb-1">
                       Última Actualización
                     </label>
-                    <p className="text-white">{formatDate(selectedOrder.updatedAt)}</p>
+                    <p className="text-white">
+                      {formatDate(selectedOrder.updatedAt)}
+                    </p>
                   </div>
                 </div>
 
@@ -1247,7 +1430,10 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
                   <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-600">
                     <div className="space-y-2">
                       {selectedOrder.food.map((item, index) => (
-                        <div key={index} className="flex items-center space-x-3">
+                        <div
+                          key={index}
+                          className="flex items-center space-x-3"
+                        >
                           <CheckCircle className="w-5 h-5 text-green-400 shrink-0" />
                           <span className="text-white">{item}</span>
                         </div>
@@ -1289,8 +1475,8 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
       )}
 
       {/* Modal de confirmación de eliminación */}
-      <Modal 
-        isOpen={isDeleteModalOpen && selectedOrder !== null} 
+      <Modal
+        isOpen={isDeleteModalOpen && selectedOrder !== null}
         onClose={() => {
           setIsDeleteModalOpen(false);
           setSelectedOrder(null);
@@ -1310,7 +1496,9 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
                   <h3 className="text-xl font-bold text-white">
                     Confirmar Eliminación
                   </h3>
-                  <p className="text-gray-400 text-sm">Esta acción no se puede deshacer</p>
+                  <p className="text-gray-400 text-sm">
+                    Esta acción no se puede deshacer
+                  </p>
                 </div>
                 <button
                   onClick={() => {
@@ -1322,7 +1510,7 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
                   <XCircle className="w-6 h-6" />
                 </button>
               </div>
-              
+
               <div className="mb-6">
                 <div className="flex items-center space-x-3 mb-4">
                   <AlertTriangle className="text-red-400" size={24} />
@@ -1331,16 +1519,18 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
                       ¿Eliminar pedido de {selectedOrder.name}?
                     </p>
                     <p className="text-gray-400 text-sm">
-                      {getOrderTypeLabel(selectedOrder.type)} • {selectedOrder.price}€
+                      {getOrderTypeLabel(selectedOrder.type)} •{' '}
+                      {selectedOrder.price}€
                     </p>
                   </div>
                 </div>
-                
+
                 <p className="text-gray-300 text-sm">
-                  Esta acción eliminará permanentemente este pedido y no se puede deshacer.
+                  Esta acción eliminará permanentemente este pedido y no se
+                  puede deshacer.
                 </p>
               </div>
-              
+
               <div className="flex space-x-3">
                 <button
                   onClick={() => {
@@ -1357,7 +1547,8 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
                   disabled={selectedOrder && isOrderLoading(selectedOrder.id)}
                   className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {selectedOrder && getOrderLoadingAction(selectedOrder.id) === 'deleting' ? (
+                  {selectedOrder &&
+                  getOrderLoadingAction(selectedOrder.id) === 'deleting' ? (
                     <>
                       <Loader2 size={16} className="mr-2 animate-spin" />
                       Eliminando...
