@@ -1180,13 +1180,17 @@ const MenuManagement: React.FC<MenuManagementProps> = ({}) => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 overflow-x-hidden">
       {renderMessages()}
 
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h3 className="text-2xl font-bold text-white">Gestión del Menú</h3>
-          <p className="text-gray-400">Administra productos del menú</p>
+          <h3 className="text-xl sm:text-2xl font-bold text-white">
+            Gestión del Menú
+          </h3>
+          <p className="text-gray-400 text-sm sm:text-base">
+            Administra productos del menú
+          </p>
         </div>
       </div>
 
@@ -1196,7 +1200,7 @@ const MenuManagement: React.FC<MenuManagementProps> = ({}) => {
             key={category.id}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-gray-800/50 border border-gray-700 rounded-xl p-6"
+            className="bg-gray-800/50 border border-gray-700 rounded-xl p-4 sm:p-6 overflow-hidden"
           >
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-3">
@@ -1243,39 +1247,37 @@ const MenuManagement: React.FC<MenuManagementProps> = ({}) => {
 
                   {/* Renderizar items directos de la subcategoría */}
                   {subcategory.items && subcategory.items.length > 0 && (
-                    <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 mb-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 mb-4">
                       {subcategory.items.map((item) => (
                         <div
                           key={item.name}
-                          className="bg-gray-900/50 border border-gray-600 rounded-lg p-3 group hover:border-gray-500 transition-colors"
+                          className="bg-gray-900/50 border border-gray-600 rounded-lg p-2.5 sm:p-3 group hover:border-gray-500 transition-colors min-w-0"
                         >
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-start space-x-3">
-                                {item.imageUrl && (
-                                  <img
-                                    src={item.imageUrl}
-                                    alt={item.name}
-                                    className="w-12 h-12 object-cover rounded-md border border-gray-500"
-                                  />
-                                )}
-                                <div className="flex-1 min-w-0">
-                                  <h6 className="font-medium text-white truncate">
-                                    {item.name}
-                                  </h6>
-                                  {item.description && (
-                                    <p className="text-gray-400 text-sm mt-1 line-clamp-2">
-                                      {item.description}
-                                    </p>
-                                  )}
-                                  <p className="text-yellow-400 font-bold mt-2">
-                                    {item.price}€
+                          <div className="flex flex-col min-w-0">
+                            <div className="flex items-start space-x-2 sm:space-x-3 mb-2 min-w-0">
+                              {item.imageUrl && (
+                                <img
+                                  src={item.imageUrl}
+                                  alt={item.name}
+                                  className="w-10 h-10 sm:w-12 sm:h-12 object-cover rounded-md border border-gray-500 shrink-0"
+                                />
+                              )}
+                              <div className="flex-1 min-w-0 overflow-hidden">
+                                <h6 className="font-medium text-white text-sm truncate">
+                                  {item.name}
+                                </h6>
+                                {item.description && (
+                                  <p className="text-gray-400 text-xs mt-0.5 line-clamp-2 wrap-break-word">
+                                    {item.description}
                                   </p>
-                                </div>
+                                )}
+                                <p className="text-yellow-400 font-bold text-sm mt-1.5">
+                                  {item.price}€
+                                </p>
                               </div>
                             </div>
 
-                            <div className="flex items-center space-x-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all">
+                            <div className="flex items-center justify-end space-x-1 pt-2 border-t border-gray-700 sm:border-0 sm:pt-0 sm:opacity-0 sm:group-hover:opacity-100 transition-all">
                               <button
                                 onClick={() =>
                                   openEditItemModal(
@@ -1285,7 +1287,7 @@ const MenuManagement: React.FC<MenuManagementProps> = ({}) => {
                                     item
                                   )
                                 }
-                                className="p-1 text-blue-400 hover:bg-blue-500/10 rounded"
+                                className="p-1.5 text-blue-400 hover:bg-blue-500/10 rounded"
                                 title="Editar producto"
                               >
                                 <Edit size={14} />
@@ -1294,7 +1296,7 @@ const MenuManagement: React.FC<MenuManagementProps> = ({}) => {
                                 onClick={() =>
                                   deleteItemHandler(category.id, item.name)
                                 }
-                                className="p-1 text-red-400 hover:bg-red-500/10 rounded"
+                                className="p-1.5 text-red-400 hover:bg-red-500/10 rounded"
                                 title="Eliminar producto"
                               >
                                 <Trash2 size={14} />
@@ -1332,42 +1334,40 @@ const MenuManagement: React.FC<MenuManagementProps> = ({}) => {
                       </div>
 
                       {subsection.items && subsection.items.length > 0 ? (
-                        <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                           {subsection.items.map((item) => (
                             <div
                               key={item.name}
-                              className="bg-gray-900/50 border border-gray-600 rounded-lg p-3 group hover:border-gray-500 transition-colors"
+                              className="bg-gray-900/50 border border-gray-600 rounded-lg p-2.5 sm:p-3 group hover:border-gray-500 transition-colors min-w-0"
                             >
-                              <div className="flex items-start justify-between">
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-start space-x-3">
-                                    {item.imageUrl && (
-                                      <img
-                                        src={item.imageUrl}
-                                        alt={item.name}
-                                        className="w-12 h-12 object-cover rounded-md border border-gray-500"
-                                      />
+                              <div className="flex flex-col min-w-0">
+                                <div className="flex items-start space-x-2 sm:space-x-3 mb-2 min-w-0">
+                                  {item.imageUrl && (
+                                    <img
+                                      src={item.imageUrl}
+                                      alt={item.name}
+                                      className="w-10 h-10 sm:w-12 sm:h-12 object-cover rounded-md border border-gray-500 shrink-0"
+                                    />
+                                  )}
+                                  <div className="flex-1 min-w-0 overflow-hidden">
+                                    <h6 className="font-medium text-white text-sm truncate">
+                                      {item.name}
+                                    </h6>
+                                    {item.description && (
+                                      <p className="text-gray-400 text-xs mt-0.5 line-clamp-2 wrap-break-word">
+                                        {item.description}
+                                      </p>
                                     )}
-                                    <div className="flex-1 min-w-0">
-                                      <h6 className="font-medium text-white truncate">
-                                        {item.name}
-                                      </h6>
-                                      {item.description && (
-                                        <p className="text-gray-400 text-sm mt-1 line-clamp-2">
-                                          {item.description}
-                                        </p>
-                                      )}
-                                      <p className="text-yellow-400 font-bold mt-2">
-                                        {item.price}€
-                                      </p>
-                                      <p className="text-blue-300 text-xs mt-1">
-                                        en {subsection.name}
-                                      </p>
-                                    </div>
+                                    <p className="text-yellow-400 font-bold text-sm mt-1.5">
+                                      {item.price}€
+                                    </p>
+                                    <p className="text-blue-300 text-xs mt-1 truncate">
+                                      en {subsection.name}
+                                    </p>
                                   </div>
                                 </div>
 
-                                <div className="flex items-center space-x-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all">
+                                <div className="flex items-center justify-end space-x-1 pt-2 border-t border-gray-700 sm:border-0 sm:pt-0 sm:opacity-0 sm:group-hover:opacity-100 transition-all">
                                   <button
                                     onClick={() =>
                                       openEditItemModal(
@@ -1377,7 +1377,7 @@ const MenuManagement: React.FC<MenuManagementProps> = ({}) => {
                                         item
                                       )
                                     }
-                                    className="p-1 text-blue-400 hover:bg-blue-500/10 rounded"
+                                    className="p-1.5 text-blue-400 hover:bg-blue-500/10 rounded"
                                     title="Editar producto"
                                   >
                                     <Edit size={14} />
@@ -1386,7 +1386,7 @@ const MenuManagement: React.FC<MenuManagementProps> = ({}) => {
                                     onClick={() =>
                                       deleteItemHandler(category.id, item.name)
                                     }
-                                    className="p-1 text-red-400 hover:bg-red-500/10 rounded"
+                                    className="p-1.5 text-red-400 hover:bg-red-500/10 rounded"
                                     title="Eliminar producto"
                                   >
                                     <Trash2 size={14} />
