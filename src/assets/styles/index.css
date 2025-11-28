@@ -1,0 +1,452 @@
+@import 'tailwindcss';
+
+/*
+  ═══════════════════════════════════════════════════════════════
+  EGO HOUSE - Tailwind CSS 4.x CSS-first Configuration
+  Basado en el análisis del proyecto olds/
+  ═══════════════════════════════════════════════════════════════
+
+  Sistema de Temas: Light/Dark Mode
+  - Usa CSS custom properties para cambiar entre modos
+  - Detecta preferencia del sistema con prefers-color-scheme
+  - Permite override manual con clase 'dark' o 'light' en <html>
+
+  Paleta de Colores:
+  - Basada en el proyecto original (olds/)
+  - Negro profundo (#0f172a) para dark mode
+  - Amarillo premium (#fbbf24) para acentos
+  - Grises azulados (#1e293b) para surfaces
+*/
+
+/* ═══════════════════════════════════════════════════════════════
+   VARIABLES CSS - LIGHT MODE (Default)
+   ═══════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ─────────────────────────────────────────────────────────────
+     COLORES BASE - LIGHT MODE
+     ───────────────────────────────────────────────────────────── */
+
+  /* Fondos */
+  --color-background: 255 255 255; /* #ffffff - Fondo principal */
+  --color-surface: 248 250 252; /* #f8fafc - Tarjetas, navbar */
+  --color-surface-hover: 241 245 249; /* #f1f5f9 - Hover states */
+
+  /* Texto */
+  --color-text-primary: 15 23 42; /* #0f172a - Texto principal */
+  --color-text-secondary: 71 85 105; /* #475569 - Texto secundario */
+  --color-text-tertiary: 148 163 184; /* #94a3b8 - Texto terciario */
+
+  /* Bordes */
+  --color-border: 226 232 240; /* #e2e8f0 - Bordes sutiles */
+  --color-border-strong: 203 213 225; /* #cbd5e1 - Bordes visibles */
+
+  /* ─────────────────────────────────────────────────────────────
+     COLORES DE MARCA - EGO HOUSE
+     ───────────────────────────────────────────────────────────── */
+
+  /* Amarillo Premium (usado en ShishaPage, CTAs) */
+  --color-accent-yellow: 251 191 36; /* #fbbf24 - yellow-400 */
+  --color-accent-yellow-hover: 245 158 11; /* #f59e0b - yellow-500 */
+
+  /* Azul Acento (botones, links) */
+  --color-accent-blue: 59 130 246; /* #3b82f6 - blue-500 */
+  --color-accent-blue-hover: 37 99 235; /* #2563eb - blue-600 */
+
+  /* ─────────────────────────────────────────────────────────────
+     COLORES SEMÁNTICOS
+     ───────────────────────────────────────────────────────────── */
+
+  --color-success: 16 185 129; /* #10b981 - green-500 */
+  --color-error: 239 68 68; /* #ef4444 - red-500 */
+  --color-warning: 245 158 11; /* #f59e0b - amber-500 */
+  --color-info: 6 182 212; /* #06b6d4 - cyan-500 */
+
+  /* ─────────────────────────────────────────────────────────────
+     OVERLAYS Y SOMBRAS
+     ───────────────────────────────────────────────────────────── */
+
+  --overlay-light: 0 0 0; /* Negro para overlays */
+  --overlay-opacity-10: 0.1;
+  --overlay-opacity-20: 0.2;
+  --overlay-opacity-30: 0.3;
+  --overlay-opacity-40: 0.4;
+  --overlay-opacity-60: 0.6;
+  --overlay-opacity-80: 0.8;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   VARIABLES CSS - DARK MODE
+   ═══════════════════════════════════════════════════════════════ */
+
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) {
+    /* ─────────────────────────────────────────────────────────────
+       COLORES BASE - DARK MODE
+       ───────────────────────────────────────────────────────────── */
+
+    /* Fondos */
+    --color-background: 15 23 42; /* #0f172a - slate-950 */
+    --color-surface: 30 41 59; /* #1e293b - slate-800 */
+    --color-surface-hover: 51 65 85; /* #334155 - slate-700 */
+
+    /* Texto */
+    --color-text-primary: 241 245 249; /* #f1f5f9 - slate-100 */
+    --color-text-secondary: 203 213 225; /* #cbd5e1 - slate-300 */
+    --color-text-tertiary: 148 163 184; /* #94a3b8 - slate-400 */
+
+    /* Bordes */
+    --color-border: 51 65 85; /* #334155 - Bordes sutiles */
+    --color-border-strong: 71 85 105; /* #475569 - Bordes visibles */
+
+    /* Overlays (blanco para fondos oscuros) */
+    --overlay-light: 255 255 255; /* Blanco para overlays */
+  }
+}
+
+/* Override manual con clase .dark */
+.dark {
+  /* Fondos */
+  --color-background: 15 23 42; /* #0f172a */
+  --color-surface: 30 41 59; /* #1e293b */
+  --color-surface-hover: 51 65 85; /* #334155 */
+
+  /* Texto */
+  --color-text-primary: 241 245 249; /* #f1f5f9 */
+  --color-text-secondary: 203 213 225; /* #cbd5e1 */
+  --color-text-tertiary: 148 163 184; /* #94a3b8 */
+
+  /* Bordes */
+  --color-border: 51 65 85; /* #334155 */
+  --color-border-strong: 71 85 105; /* #475569 */
+
+  /* Overlays */
+  --overlay-light: 255 255 255;
+}
+
+/* Override manual con clase .light */
+.light {
+  /* Fondos */
+  --color-background: 255 255 255; /* #ffffff */
+  --color-surface: 248 250 252; /* #f8fafc */
+  --color-surface-hover: 241 245 249; /* #f1f5f9 */
+
+  /* Texto */
+  --color-text-primary: 15 23 42; /* #0f172a */
+  --color-text-secondary: 71 85 105; /* #475569 */
+  --color-text-tertiary: 148 163 184; /* #94a3b8 */
+
+  /* Bordes */
+  --color-border: 226 232 240; /* #e2e8f0 */
+  --color-border-strong: 203 213 225; /* #cbd5e1 */
+
+  /* Overlays */
+  --overlay-light: 0 0 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   TAILWIND THEME CONFIGURATION
+   ═══════════════════════════════════════════════════════════════ */
+
+@theme {
+  /* ─────────────────────────────────────────────────────────────
+     TIPOGRAFÍA
+     ───────────────────────────────────────────────────────────── */
+
+  --font-family-sans: 'Poppins', system-ui, -apple-system, 'Segoe UI',
+    sans-serif;
+  --font-family-mono: 'Fira Code', 'Courier New', monospace;
+
+  /* ─────────────────────────────────────────────────────────────
+     COLORES - Usando variables CSS
+     ───────────────────────────────────────────────────────────── */
+
+  /* Fondos */
+  --color-background: rgb(var(--color-background));
+  --color-surface: rgb(var(--color-surface));
+  --color-surface-hover: rgb(var(--color-surface-hover));
+
+  /* Texto */
+  --color-text-primary: rgb(var(--color-text-primary));
+  --color-text-secondary: rgb(var(--color-text-secondary));
+  --color-text-tertiary: rgb(var(--color-text-tertiary));
+
+  /* Bordes */
+  --color-border: rgb(var(--color-border));
+  --color-border-strong: rgb(var(--color-border-strong));
+
+  /* Marca - Amarillo */
+  --color-accent: rgb(var(--color-accent-yellow));
+  --color-accent-hover: rgb(var(--color-accent-yellow-hover));
+
+  /* Marca - Azul */
+  --color-accent-blue: rgb(var(--color-accent-blue));
+  --color-accent-blue-hover: rgb(var(--color-accent-blue-hover));
+
+  /* Semánticos */
+  --color-success: rgb(var(--color-success));
+  --color-error: rgb(var(--color-error));
+  --color-warning: rgb(var(--color-warning));
+  --color-info: rgb(var(--color-info));
+
+  /* Overlays */
+  --color-overlay-10: rgb(var(--overlay-light) / var(--overlay-opacity-10));
+  --color-overlay-20: rgb(var(--overlay-light) / var(--overlay-opacity-20));
+  --color-overlay-30: rgb(var(--overlay-light) / var(--overlay-opacity-30));
+  --color-overlay-40: rgb(var(--overlay-light) / var(--overlay-opacity-40));
+  --color-overlay-60: rgb(var(--overlay-light) / var(--overlay-opacity-60));
+  --color-overlay-80: rgb(var(--overlay-light) / var(--overlay-opacity-80));
+
+  /* ─────────────────────────────────────────────────────────────
+     ESPACIADO
+     ───────────────────────────────────────────────────────────── */
+
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 3rem;
+  --spacing-3xl: 4rem;
+
+  /* ─────────────────────────────────────────────────────────────
+     BORDER RADIUS
+     ───────────────────────────────────────────────────────────── */
+
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+  --radius-full: 9999px;
+
+  /* ─────────────────────────────────────────────────────────────
+     SOMBRAS
+     ───────────────────────────────────────────────────────────── */
+
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+  --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+
+  /* ─────────────────────────────────────────────────────────────
+     TRANSICIONES
+     ───────────────────────────────────────────────────────────── */
+
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ─────────────────────────────────────────────────────────────
+     Z-INDEX
+     ───────────────────────────────────────────────────────────── */
+
+  --z-base: 0;
+  --z-dropdown: 1000;
+  --z-sticky: 1100;
+  --z-fixed: 1200;
+  --z-modal-backdrop: 1300;
+  --z-modal: 1400;
+  --z-popover: 1500;
+  --z-tooltip: 1600;
+
+  /* ─────────────────────────────────────────────────────────────
+     ANIMACIONES
+     ───────────────────────────────────────────────────────────── */
+
+  --animate-fade-in: fadeIn 0.3s ease-out forwards;
+  --animate-fade-out: fadeOut 0.3s ease-out forwards;
+  --animate-slide-in-up: slideInUp 0.3s ease-out forwards;
+  --animate-slide-in-down: slideInDown 0.3s ease-out forwards;
+  --animate-scale-in: scaleIn 0.2s ease-out forwards;
+  --animate-spin: spin 1s linear infinite;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   KEYFRAME ANIMATIONS
+   ═══════════════════════════════════════════════════════════════ */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(1rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-1rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   BASE STYLES
+   ═══════════════════════════════════════════════════════════════ */
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  font-family: var(--font-family-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: rgb(var(--color-background));
+  color: rgb(var(--color-text-primary));
+  min-height: 100vh;
+  transition: background-color var(--transition-base),
+    color var(--transition-base);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CUSTOM UTILITY CLASSES
+   ═══════════════════════════════════════════════════════════════ */
+
+@utility fade-in {
+  animation: var(--animate-fade-in);
+}
+
+@utility fade-out {
+  animation: var(--animate-fade-out);
+}
+
+@utility slide-in-up {
+  animation: var(--animate-slide-in-up);
+}
+
+@utility slide-in-down {
+  animation: var(--animate-slide-in-down);
+}
+
+@utility scale-in {
+  animation: var(--animate-scale-in);
+}
+
+@utility spin {
+  animation: var(--animate-spin);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SCROLLBAR STYLING (WebKit)
+   ═══════════════════════════════════════════════════════════════ */
+
+::-webkit-scrollbar {
+  width: 0.5rem;
+  height: 0.5rem;
+}
+
+::-webkit-scrollbar-track {
+  background-color: rgb(var(--color-surface));
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgb(var(--color-surface-hover));
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgb(var(--color-accent));
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ACCESSIBILITY
+   ═══════════════════════════════════════════════════════════════ */
+
+:focus-visible {
+  outline: 2px solid rgb(var(--color-accent));
+  outline-offset: 2px;
+}
+
+::selection {
+  background-color: rgb(var(--color-accent));
+  color: white;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   USAGE EXAMPLES
+   ═══════════════════════════════════════════════════════════════
+
+   Cómo usar las variables en tu código:
+
+   1. Fondos:
+      className="bg-background"       → Fondo principal
+      className="bg-surface"          → Tarjetas, navbar
+      className="bg-surface-hover"    → Hover states
+
+   2. Texto:
+      className="text-text-primary"   → Texto principal
+      className="text-text-secondary" → Texto secundario
+      className="text-text-tertiary"  → Texto terciario
+
+   3. Acentos:
+      className="bg-accent"           → Amarillo premium
+      className="text-accent"         → Texto amarillo
+      className="bg-accent-blue"      → Azul acento
+
+   4. Bordes:
+      className="border-border"       → Bordes sutiles
+      className="border-border-strong" → Bordes visibles
+
+   5. Overlays:
+      className="bg-overlay-10"       → Overlay 10% opacidad
+      className="bg-overlay-60"       → Overlay 60% opacidad
+
+   6. Cambiar tema manualmente:
+      document.documentElement.classList.add('dark');    // Dark mode
+      document.documentElement.classList.add('light');   // Light mode
+      document.documentElement.classList.remove('dark', 'light'); // Auto
+
+   ═══════════════════════════════════════════════════════════════ */

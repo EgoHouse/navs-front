@@ -1,69 +1,32 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { AuthProvider } from './providers/AuthProvider';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+
+// Query Client
+import { queryClient } from '@lib/api/queryClient';
+
+// Routes constants
+import { ROUTES } from '@lib/utils/routes';
+
+// Public Pages
 import LandingPage from './pages/LandingPage';
-import FullMenuPage from './pages/FullMenuPage';
-import ShishaPage from './pages/ShishaPage';
-import GaleriaCachimbas from './pages/GaleriaCachimbas';
-import AdminDashboard from './pages/AdminDashboard';
-import ProtectedRoute from './components/ProtectedRoute';
-// import LocalPage from './pages/LocalPage';
-import TableManagement from './pages/TableManagement';
-import DesayunosPage from './pages/DesayunosPage';
-import OrderTrackingPage from './pages/OrderTrackingPage';
-import AuthPage from './pages/AuthPage';
+
+// Shared Components
+import ProtectedRoute from '@components/shared/ProtectedRoute';
 
 function App() {
   return (
-    <AuthProvider>
+    <QueryClientProvider client={queryClient}>
       <Router>
         <Routes>
-          
-          {/* Rutas públicas - accesibles sin autenticación */}
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/menu/general" element={<FullMenuPage />} />
-          {/* <Route path="/menu/:categorySlug" element={<MenuPage />} /> */}
-          <Route path="/shisha" element={<ShishaPage />} />
-          <Route path="/galeria-cachimbas" element={<GaleriaCachimbas />} />
-          {/* <Route path="/local" element={<LocalPage />} />       */}
-          <Route path="/tracking" element={<OrderTrackingPage />} />
-          <Route path="/tracking/:trackingNumber" element={<OrderTrackingPage />} />
-          
-          {/* Ruta de autenticación para usuarios normales */}
-          <Route path="/auth" element={<AuthPage userType="user" />} />
 
-          {/* Ruta de autenticación para administradores */}
-          <Route path="/admin" element={<AuthPage userType="admin" />} />
-
-          {/* Rutas protegidas para usuarios normales */}
-          <Route 
-            path="/desayunos" 
-            element={
-              <ProtectedRoute requireUser={true}>
-                <DesayunosPage />
-              </ProtectedRoute>
-            } 
-          />
-
-          {/* Rutas protegidas - requieren autenticación de admin */}
-          <Route 
-            path="/admin/dashboard" 
-            element={
-              <ProtectedRoute requireAdmin={true}>
-                <AdminDashboard />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/admin/tables" 
-            element={
-              <ProtectedRoute requireAdmin={true}>
-                <TableManagement />
-              </ProtectedRoute>
-            } 
-          />
+          <Route path={ROUTES.HOME} element={<LandingPage />} />
         </Routes>
       </Router>
-    </AuthProvider>
+
+      {/* React Query Devtools */}
+      <ReactQueryDevtools initialIsOpen={false} />
+    </QueryClientProvider>
   );
 }
 
