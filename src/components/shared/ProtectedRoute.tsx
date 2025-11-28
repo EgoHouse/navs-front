@@ -34,8 +34,8 @@ const ProtectedRoute = ({
     );
   }
 
-  // Redirigir a auth si no está autenticado
-  if (!isAuthenticated) {
+  // Redirigir a auth si no está autenticado o no tiene permisos
+  if (!isAuthenticated || (requireAdmin && user?.role !== 'ADMIN')) {
     // Si requiere admin, ir a la página de auth de admin
     if (requireAdmin) {
       return <Navigate to={ROUTES.AUTH.ADMIN} state={{ from: location }} replace />;
@@ -46,30 +46,6 @@ const ProtectedRoute = ({
     }
     // Por defecto
     return <Navigate to={redirectTo} state={{ from: location }} replace />;
-  }
-
-  // Verificar permisos de admin si es requerido
-  if (requireAdmin && user?.role !== 'ADMIN') {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-black">
-        <div className="mx-auto max-w-md px-4 text-center">
-          <div className="rounded-2xl border border-gray-700/50 bg-gray-900/80 p-8 backdrop-blur-lg">
-            <h2 className="mb-4 text-xl font-bold text-white">
-              Acceso Restringido
-            </h2>
-            <p className="mb-6 text-gray-400">
-              Esta página requiere permisos de administrador.
-            </p>
-            <button
-              onClick={() => window.history.back()}
-              className="rounded-lg bg-accent px-6 py-2 font-semibold text-black transition-colors hover:bg-yellow-300"
-            >
-              Volver
-            </button>
-          </div>
-        </div>
-      </div>
-    );
   }
 
   // Verificar que tenga token de usuario si es requerido
