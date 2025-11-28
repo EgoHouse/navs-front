@@ -8,7 +8,7 @@ export const ROUTES = {
 
   // Menu
   MENU: {
-    GENERAL: '/menu/general',
+    GENERAL: '/menu',
     CATEGORY: '/menu/:categorySlug', // Ruta dinámica
   },
 

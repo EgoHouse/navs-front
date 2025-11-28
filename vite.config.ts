@@ -11,9 +11,10 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, './src'),
       '@modules': path.resolve(__dirname, './src/modules'),
+      '@features': path.resolve(__dirname, './src/features'),
       '@components': path.resolve(__dirname, './src/components'),
       '@lib': path.resolve(__dirname, './src/lib'),
-      '@assets': path.resolve(__dirname, './src/assets'),
+      '@styles': path.resolve(__dirname, './src/styles'),
       '@tests': path.resolve(__dirname, './src/tests'),
     },
   },
@@ -32,14 +33,7 @@ export default defineConfig({
         },
       },
     },
-    // Remove console.log in production
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: true,
-        drop_debugger: true,
-      },
-    },
+    minify: 'esbuild',
   },
 
   server: {

@@ -21,9 +21,9 @@
     "paths": {
       "@/*": ["./*"],
       "@modules/*": ["./modules/*"],
+      "@features/*": ["./features/*"],
       "@components/*": ["./components/*"],
       "@lib/*": ["./lib/*"],
-      "@assets/*": ["./assets/*"],
       "@tests/*": ["./tests/*"]
     },
 

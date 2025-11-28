@@ -48,7 +48,6 @@ export default defineConfig({
       '@modules': path.resolve(__dirname, './src/modules'),
       '@components': path.resolve(__dirname, './src/components'),
       '@lib': path.resolve(__dirname, './src/lib'),
-      '@assets': path.resolve(__dirname, './src/assets'),
       '@tests': path.resolve(__dirname, './src/tests'),
     },
   },

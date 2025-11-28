@@ -2,9 +2,9 @@ import { useAuthStore } from '../store';
 import type { AuthStore } from '../types';
 
 /**
- * Hook para acceder al estado completo de autenticación
+ * Hook para acceder al estado de autenticación
  */
-export const useAuth = (): AuthStore => {
+const useAuth = (): AuthStore => {
   return useAuthStore();
 };
 

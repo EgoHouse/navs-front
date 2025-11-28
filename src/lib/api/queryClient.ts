@@ -1,9 +1,3 @@
-/**
- * React Query Client Configuration
- *
- * Configuración centralizada del QueryClient para TanStack React Query
- */
-
 import { QueryClient } from '@tanstack/react-query';
 
 export const queryClient = new QueryClient({

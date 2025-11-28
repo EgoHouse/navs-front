@@ -31,11 +31,9 @@ export const useAuthWithServices = () => {
         clearError();
 
         const storedToken = AuthService.getToken();
-        console.log('Token almacenado encontrado:', !!storedToken);
-        
+
         // Si no hay token, limpiar estado y terminar
         if (!storedToken) {
-          console.log('No hay token almacenado, limpiando estado');
           clearAuthState();
           setLoading(false);
           return;
@@ -43,7 +41,6 @@ export const useAuthWithServices = () => {
 
         // Si hay token pero no está autenticado en el store, verificar con el servidor
         if (!isAuthenticated) {
-          console.log('Token encontrado pero no autenticado, verificando con servidor...');
           const currentUser = await AuthService.getCurrentUser();
           if (currentUser) {
             // Login con el usuario obtenido y el token existente
@@ -81,27 +78,14 @@ export const useAuthWithServices = () => {
       setLoading(true);
       clearError();
 
-      console.log('Iniciando login con credenciales:', credentials.email);
       const response = await AuthService.login(credentials);
-      
-      console.log('Respuesta del servidor:', {
-        user: response.user,
-        hasToken: !!response.access_token,
-        role: response.user?.role
-      });
-      
+
       // Actualizar store con los datos de la respuesta
       setLoginState(response.user, response.access_token);
-      console.log('Usuario logueado exitosamente:', {
-        email: response.user.email,
-        role: response.user.role,
-        id: response.user.id
-      });
       updateActivity();
-      
+
       return response; // Devolver la respuesta para uso posterior
     } catch (error: any) {
-      console.error('Error en login:', error);
       setError(error.message || 'Error en el login');
       throw error;
     } finally {
@@ -116,7 +100,7 @@ export const useAuthWithServices = () => {
       clearError();
 
       const response = await AuthService.register(userData);
-      
+
       // Actualizar store con los datos de la respuesta
       setLoginState(response.user, response.access_token);
       updateActivity();
@@ -141,7 +125,7 @@ export const useAuthWithServices = () => {
 
       setLoading(true);
       clearError();
-      
+
       const currentUser = await AuthService.getProfile();
       updateUser(currentUser);
       updateActivity();
@@ -170,7 +154,7 @@ export const useAuthWithServices = () => {
     isAuthenticated,
     isLoading,
     error,
-    
+
     // Funciones
     login,
     register,
@@ -178,7 +162,7 @@ export const useAuthWithServices = () => {
     refreshUser,
     clearError,
     trackActivity,
-    
+
     // Computed values
     isAdmin: user?.role === 'ADMIN',
     isUser: user?.role === 'USER',

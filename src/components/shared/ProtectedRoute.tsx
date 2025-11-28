@@ -1,11 +1,6 @@
-/**
- * Protected Route Component
- * Protege rutas que requieren autenticación
- */
-
 import { Navigate, useLocation } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
-import { useAuth } from '@modules/auth/hooks/useAuth';
+import useAuth from '@modules/auth/hooks/useAuth';
 import { ROUTES } from '@lib/utils/routes';
 
 interface ProtectedRouteProps {
@@ -15,12 +10,15 @@ interface ProtectedRouteProps {
   redirectTo?: string;
 }
 
-export default function ProtectedRoute({
+/**
+ * Componente para proteger rutas que requieren autenticación
+ */
+const ProtectedRoute = ({
   children,
   requireAdmin = false,
   requireUser = false,
   redirectTo = ROUTES.HOME,
-}: ProtectedRouteProps) {
+}: ProtectedRouteProps) => {
   const { isAuthenticated, user, isLoading } = useAuth();
   const location = useLocation();
 
@@ -46,7 +44,7 @@ export default function ProtectedRoute({
     if (requireUser) {
       return <Navigate to={ROUTES.AUTH.USER} state={{ from: location }} replace />;
     }
-    // Por defecto, ir a donde se especifique
+    // Por defecto
     return <Navigate to={redirectTo} state={{ from: location }} replace />;
   }
 
@@ -80,4 +78,6 @@ export default function ProtectedRoute({
   }
 
   return <>{children}</>;
-}
+};
+
+export default ProtectedRoute;

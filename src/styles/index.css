@@ -1,26 +1,5 @@
 @import 'tailwindcss';
 
-/*
-  ═══════════════════════════════════════════════════════════════
-  EGO HOUSE - Tailwind CSS 4.x CSS-first Configuration
-  Basado en el análisis del proyecto olds/
-  ═══════════════════════════════════════════════════════════════
-
-  Sistema de Temas: Light/Dark Mode
-  - Usa CSS custom properties para cambiar entre modos
-  - Detecta preferencia del sistema con prefers-color-scheme
-  - Permite override manual con clase 'dark' o 'light' en <html>
-
-  Paleta de Colores:
-  - Basada en el proyecto original (olds/)
-  - Negro profundo (#0f172a) para dark mode
-  - Amarillo premium (#fbbf24) para acentos
-  - Grises azulados (#1e293b) para surfaces
-*/
-
-/* ═══════════════════════════════════════════════════════════════
-   VARIABLES CSS - LIGHT MODE (Default)
-   ═══════════════════════════════════════════════════════════════ */
 
 :root {
   /* ─────────────────────────────────────────────────────────────
@@ -28,6 +7,7 @@
      ───────────────────────────────────────────────────────────── */
 
   /* Fondos */
+  --color-background-black: 0 0 0; /* #000000 - Fondo principal negro */
   --color-background: 255 255 255; /* #ffffff - Fondo principal */
   --color-surface: 248 250 252; /* #f8fafc - Tarjetas, navbar */
   --color-surface-hover: 241 245 249; /* #f1f5f9 - Hover states */
@@ -74,10 +54,6 @@
   --overlay-opacity-60: 0.6;
   --overlay-opacity-80: 0.8;
 }
-
-/* ═══════════════════════════════════════════════════════════════
-   VARIABLES CSS - DARK MODE
-   ═══════════════════════════════════════════════════════════════ */
 
 @media (prefers-color-scheme: dark) {
   :root:not(.light) {
@@ -344,11 +320,16 @@ html {
 body {
   margin: 0;
   padding: 0;
-  background-color: rgb(var(--color-background));
+  background-color: rgb(var(--color-background-black));
   color: rgb(var(--color-text-primary));
   min-height: 100vh;
   transition: background-color var(--transition-base),
     color var(--transition-base);
+  overflow-x: hidden;
+}
+
+html {
+  overflow-x: hidden;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -384,21 +365,19 @@ body {
    ═══════════════════════════════════════════════════════════════ */
 
 ::-webkit-scrollbar {
-  width: 0.5rem;
-  height: 0.5rem;
+  width: 0;
+  height: 0;
+  display: none;
 }
 
-::-webkit-scrollbar-track {
-  background-color: rgb(var(--color-surface));
+/* Para Firefox */
+* {
+  scrollbar-width: none;
 }
 
-::-webkit-scrollbar-thumb {
-  background-color: rgb(var(--color-surface-hover));
-  border-radius: var(--radius-full);
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background-color: rgb(var(--color-accent));
+/* Para IE/Edge */
+* {
+  -ms-overflow-style: none;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -414,39 +393,3 @@ body {
   background-color: rgb(var(--color-accent));
   color: white;
 }
-
-/* ═══════════════════════════════════════════════════════════════
-   USAGE EXAMPLES
-   ═══════════════════════════════════════════════════════════════
-
-   Cómo usar las variables en tu código:
-
-   1. Fondos:
-      className="bg-background"       → Fondo principal
-      className="bg-surface"          → Tarjetas, navbar
-      className="bg-surface-hover"    → Hover states
-
-   2. Texto:
-      className="text-text-primary"   → Texto principal
-      className="text-text-secondary" → Texto secundario
-      className="text-text-tertiary"  → Texto terciario
-
-   3. Acentos:
-      className="bg-accent"           → Amarillo premium
-      className="text-accent"         → Texto amarillo
-      className="bg-accent-blue"      → Azul acento
-
-   4. Bordes:
-      className="border-border"       → Bordes sutiles
-      className="border-border-strong" → Bordes visibles
-
-   5. Overlays:
-      className="bg-overlay-10"       → Overlay 10% opacidad
-      className="bg-overlay-60"       → Overlay 60% opacidad
-
-   6. Cambiar tema manualmente:
-      document.documentElement.classList.add('dark');    // Dark mode
-      document.documentElement.classList.add('light');   // Light mode
-      document.documentElement.classList.remove('dark', 'light'); // Auto
-
-   ═══════════════════════════════════════════════════════════════ */

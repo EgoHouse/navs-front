@@ -1,8 +1,3 @@
-/**
- * Auth Module - useUser Hook
- * Hook para acceder a datos del usuario con loading state
- */
-
 import { useAuthStore } from '../store';
 import type { User } from '../types';
 
@@ -15,21 +10,9 @@ interface UseUserReturn {
 }
 
 /**
- * Hook para acceder a datos del usuario con estado de carga
- * @returns Información del usuario con estado de loading y error
- *
- * @example
- * ```tsx
- * const { user, isLoading, error, refreshUser, isAdmin } = useUser();
- *
- * if (isLoading) return <Spinner />;
- * if (error) return <Error message={error} />;
- * if (!user) return <Login />;
- *
- * return <UserProfile user={user} isAdmin={isAdmin} />;
- * ```
+ * Hook para acceder a datos del usuario con loading
  */
-export const useUser = (): UseUserReturn => {
+const useUser = (): UseUserReturn => {
   const { user, isLoading, error, refreshUser } = useAuthStore();
 
   return {

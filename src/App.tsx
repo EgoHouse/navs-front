@@ -1,31 +1,28 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 
-// Query Client
+//* Libs
 import { queryClient } from '@lib/api/queryClient';
-
-// Routes constants
 import { ROUTES } from '@lib/utils/routes';
 
-// Public Pages
-import LandingPage from './pages/LandingPage';
+//* Modules
+import AuthProvider from '@modules/auth/providers/AuthProvider';
 
-// Shared Components
-import ProtectedRoute from '@components/shared/ProtectedRoute';
+//* Pages
+import Landing from '@features/landing';
+import NotFound from '@features/not-found';
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <Router>
-        <Routes>
-
-          <Route path={ROUTES.HOME} element={<LandingPage />} />
-        </Routes>
-      </Router>
-
-      {/* React Query Devtools */}
-      <ReactQueryDevtools initialIsOpen={false} />
+      <AuthProvider>
+        <Router>
+          <Routes>
+            <Route path={ROUTES.HOME} element={<Landing />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Router>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

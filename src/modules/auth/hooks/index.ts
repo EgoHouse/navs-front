@@ -1,9 +1,4 @@
-/**
- * Auth Module - Hooks Index
- * Re-export all auth hooks
- */
-
-export * from './useAuth';
-export * from './useIsAdmin';
-export * from './usePermissions';
-export * from './useUser';
+export { default as useAuth } from './useAuth';
+export { default as useIsAdmin } from './useIsAdmin';
+export { default as usePermissions } from './usePermissions';
+export { default as useUser } from './useUser';

@@ -94,5 +94,5 @@ export function getCloudinaryPublicId(url: string): string | null {
   if (!isCloudinaryUrl(url)) return null;
 
   const match = url.match(/\/upload\/(?:v\d+\/)?(.+?)(?:\.\w+)?$/);
-  return match ? match[1] : null;
+  return match?.[1] ?? null;
 }

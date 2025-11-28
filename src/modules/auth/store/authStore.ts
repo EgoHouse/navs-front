@@ -1,53 +1,28 @@
-/**
- * Auth Module - Auth Store
- * Estado global de autenticación usando Zustand
- */
-
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
-import { AuthService } from '../services';
+import AuthService from '../services/authService';
 import type { AuthStore, LoginRequest, RegisterRequest } from '../types';
 
-/**
- * Store de autenticación
- * Maneja el estado global de autenticación de la aplicación
- */
 export const useAuthStore = create<AuthStore>()(
   devtools(
     (set, get) => ({
-      // ===== STATE =====
       user: null,
       isAuthenticated: false,
       token: null,
       isLoading: true,
       error: null,
 
-      // ===== ACTIONS =====
-
-      /**
-       * Establecer estado de loading
-       */
       setLoading: (isLoading: boolean) => {
         set({ isLoading }, false, 'auth/setLoading');
       },
 
-      /**
-       * Establecer error
-       */
       setError: (error: string | null) => {
         set({ error }, false, 'auth/setError');
       },
 
-      /**
-       * Limpiar error
-       */
       clearError: () => {
         set({ error: null }, false, 'auth/clearError');
       },
-
-      /**
-       * Iniciar sesión
-       */
       login: async (credentials: LoginRequest) => {
         try {
           set({ isLoading: true, error: null }, false, 'auth/login/start');
@@ -81,9 +56,6 @@ export const useAuthStore = create<AuthStore>()(
         }
       },
 
-      /**
-       * Registrar nuevo usuario
-       */
       register: async (userData: RegisterRequest) => {
         try {
           set({ isLoading: true, error: null }, false, 'auth/register/start');
@@ -117,9 +89,6 @@ export const useAuthStore = create<AuthStore>()(
         }
       },
 
-      /**
-       * Cerrar sesión
-       */
       logout: () => {
         AuthService.logout();
 
@@ -136,9 +105,6 @@ export const useAuthStore = create<AuthStore>()(
         );
       },
 
-      /**
-       * Refrescar datos del usuario
-       */
       refreshUser: async () => {
         try {
           const { isAuthenticated } = get();
@@ -181,15 +147,11 @@ export const useAuthStore = create<AuthStore>()(
     }),
     {
       name: 'auth-store',
-      enabled: import.meta.env.DEV, // Solo en desarrollo
+      enabled: import.meta.env.DEV,
     }
   )
 );
 
-/**
- * Función para inicializar el estado de autenticación
- * Verifica si hay un token válido y carga el usuario
- */
 export const initializeAuth = async () => {
   const store = useAuthStore.getState();
 
@@ -197,15 +159,12 @@ export const initializeAuth = async () => {
     store.setLoading(true);
 
     const token = AuthService.getToken();
-
     if (!token || !AuthService.isAuthenticated()) {
       store.setLoading(false);
       return;
     }
 
-    // Verificar token con el servidor
     const user = await AuthService.getCurrentUser();
-
     if (user) {
       useAuthStore.setState({
         user,
@@ -215,7 +174,6 @@ export const initializeAuth = async () => {
         error: null,
       });
     } else {
-      // Token inválido, limpiar estado
       store.setLoading(false);
     }
   } catch (error) {
@@ -223,5 +181,3 @@ export const initializeAuth = async () => {
     store.setLoading(false);
   }
 };
-
-export default useAuthStore;
