@@ -1,6 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './providers/AuthProvider';
-import ShishaPage from './pages/ShishaPage';
 import GaleriaCachimbas from './pages/GaleriaCachimbas';
 import AdminDashboard from './pages/AdminDashboard';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -16,7 +15,6 @@ function App() {
         <Routes>
 
           {/* Rutas públicas - accesibles sin autenticación */}
-          <Route path="/shisha" element={<ShishaPage />} />
           <Route path="/galeria-cachimbas" element={<GaleriaCachimbas />} />
           <Route path="/tracking" element={<OrderTrackingPage />} />
           <Route path="/tracking/:trackingNumber" element={<OrderTrackingPage />} />
