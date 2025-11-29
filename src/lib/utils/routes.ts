@@ -76,10 +76,10 @@ export const RouteMetadata = {
     keywords: 'carta ego house, menú tetería madrid, bebidas premium madrid',
   },
   [ROUTES.SHISHA]: {
-    title: 'Cachimbas Premium | EGO HOUSE Madrid',
+    title: 'Fumar Cachimba Madrid | Mejores Teterías Madrid | EGO HOUSE',
     description:
-      'Las mejores cachimbas de Madrid. Tabaco premium, sabores únicos y experiencia personalizada.',
-    keywords: 'cachimba madrid, shisha premium, fumar cachimba madrid',
+      'La mejor tetería de Madrid para fumar cachimba. Experiencia personalizada de shisha con tabaco premium, sabores únicos y ambiente exclusivo.',
+    keywords: 'fumar cachimba madrid, mejores teterias madrid, tetería madrid centro, cachimba madrid, hookah lounge madrid, shisha madrid, cachimba premium madrid',
   },
   [ROUTES.GALERIA_CACHIMBAS]: {
     title: 'Galería de Cachimbas | EGO HOUSE Madrid',
