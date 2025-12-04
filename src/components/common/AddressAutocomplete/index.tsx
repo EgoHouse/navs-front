@@ -1,15 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { MapPin, Search, X } from 'lucide-react';
-
-interface AddressAutocompleteProps {
-  value: string;
-  onChange: (address: string) => void;
-  onSelect?: (address: string, placeId?: string, coordinates?: { lat: number; lng: number }) => void;
-  placeholder?: string;
-  className?: string;
-  error?: string;
-  disabled?: boolean;
-}
 
 interface AddressSuggestion {
   id: string;
@@ -26,15 +16,32 @@ interface AddressSuggestion {
   lon: string;
 }
 
-const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
+interface AddressAutocompleteProps {
+  value: string;
+  onChange: (address: string) => void;
+  onSelect?: (
+    address: string,
+    placeId?: string,
+    coordinates?: { lat: number; lng: number }
+  ) => void;
+  placeholder?: string;
+  className?: string;
+  error?: string;
+  disabled?: boolean;
+}
+
+/**
+ * Componente de autocompletado de direcciones usando Nominatim API
+ */
+const AddressAutocomplete = ({
   value,
   onChange,
   onSelect,
-  placeholder = "Escribe tu dirección...",
-  className = "",
+  placeholder = 'Escribe tu dirección...',
+  className = '',
   error,
-  disabled = false
-}) => {
+  disabled = false,
+}: AddressAutocompleteProps) => {
   const [suggestions, setSuggestions] = useState<AddressSuggestion[]>([]);
   const [loading, setLoading] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -59,11 +66,10 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
   const searchAddresses = async (query: string) => {
     setLoading(true);
     try {
-      // Usar Nominatim API (gratuita) para geocodificación
       const response = await fetch(
         `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=5&countrycodes=es&q=${encodeURIComponent(query + ' Madrid España')}`
       );
-      
+
       if (response.ok) {
         const data = await response.json();
         setSuggestions(data);
@@ -88,20 +94,19 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
     onChange(formattedAddress);
     setShowSuggestions(false);
     setSuggestions([]);
-    
+
     if (onSelect) {
-      onSelect(
-        formattedAddress, 
-        suggestion.id, 
-        { lat: parseFloat(suggestion.lat), lng: parseFloat(suggestion.lon) }
-      );
+      onSelect(formattedAddress, suggestion.id, {
+        lat: parseFloat(suggestion.lat),
+        lng: parseFloat(suggestion.lon),
+      });
     }
   };
 
   const formatAddress = (suggestion: AddressSuggestion): string => {
     const { address } = suggestion;
     const parts = [];
-    
+
     if (address.road) {
       let road = address.road;
       if (address.house_number) {
@@ -109,17 +114,17 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
       }
       parts.push(road);
     }
-    
+
     if (address.postcode && address.city) {
       parts.push(`${address.postcode} ${address.city}`);
     } else if (address.city) {
       parts.push(address.city);
     }
-    
+
     if (address.state && address.state !== address.city) {
       parts.push(address.state);
     }
-    
+
     return parts.join(', ');
   };
 
@@ -129,19 +134,15 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
     switch (e.key) {
       case 'ArrowDown':
         e.preventDefault();
-        setActiveSuggestion(prev => 
-          prev < suggestions.length - 1 ? prev + 1 : 0
-        );
+        setActiveSuggestion((prev) => (prev < suggestions.length - 1 ? prev + 1 : 0));
         break;
       case 'ArrowUp':
         e.preventDefault();
-        setActiveSuggestion(prev => 
-          prev > 0 ? prev - 1 : suggestions.length - 1
-        );
+        setActiveSuggestion((prev) => (prev > 0 ? prev - 1 : suggestions.length - 1));
         break;
       case 'Enter':
         e.preventDefault();
-        if (activeSuggestion >= 0) {
+        if (activeSuggestion >= 0 && suggestions[activeSuggestion]) {
           handleSelect(suggestions[activeSuggestion]);
         }
         break;
@@ -164,7 +165,10 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
   return (
     <div className="relative">
       <div className="relative">
-        <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+        <MapPin
+          className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+          size={18}
+        />
         <input
           ref={inputRef}
           type="text"
@@ -183,10 +187,8 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
           disabled={disabled}
           autoComplete="off"
         />
-        <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center space-x-1">
-          {loading && (
-            <Search className="animate-pulse text-gray-400" size={16} />
-          )}
+        <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center space-x-1">
+          {loading && <Search className="animate-pulse text-gray-400" size={16} />}
           {value && !loading && (
             <button
               type="button"
@@ -198,9 +200,9 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
           )}
         </div>
       </div>
-      
+
       {showSuggestions && suggestions.length > 0 && (
-        <div 
+        <div
           ref={suggestionsRef}
           className="absolute z-50 w-full mt-1 bg-gray-800 border border-gray-600 rounded-lg shadow-lg max-h-60 overflow-y-auto"
         >

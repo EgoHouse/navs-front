@@ -18,6 +18,7 @@ const MenuPage = lazy(() => import('@features/menu').then(m => ({ default: m.Men
 const ShishaPage = lazy(() => import('@features/shisha').then(m => ({ default: m.ShishaPage })));
 const ShishaGalleryPage = lazy(() => import('@features/shisha-gallery').then(m => ({ default: m.ShishaGalleryPage })));
 const OrderTrackingPage = lazy(() => import('@features/order-tracking').then(m => ({ default: m.OrderTrackingPage })));
+const AuthPage = lazy(() => import('@features/auth').then(m => ({ default: m.AuthPage })));
 const NotFound = lazy(() => import('@features/not-found'));
 
 /**
@@ -45,6 +46,8 @@ function App() {
               <Route path={ROUTES.GALERIA_CACHIMBAS} element={<ShishaGalleryPage />} />
               <Route path={ROUTES.TRACKING.BASE} element={<OrderTrackingPage />} />
               <Route path={ROUTES.TRACKING.DETAIL} element={<OrderTrackingPage />} />
+              <Route path={ROUTES.AUTH.USER} element={<AuthPage userType="user" />} />
+              <Route path={ROUTES.AUTH.ADMIN} element={<AuthPage userType="admin" />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
