@@ -23,8 +23,7 @@
       "@modules/*": ["./modules/*"],
       "@features/*": ["./features/*"],
       "@components/*": ["./components/*"],
-      "@lib/*": ["./lib/*"],
-      "@tests/*": ["./tests/*"]
+      "@lib/*": ["./lib/*"]
     },
 
     /* Linting */
