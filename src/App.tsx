@@ -16,6 +16,7 @@ import Landing from '@features/landing';
 //* Lazy-loaded pages (code-splitting for better performance)
 const MenuPage = lazy(() => import('@features/menu').then(m => ({ default: m.MenuPage })));
 const ShishaPage = lazy(() => import('@features/shisha').then(m => ({ default: m.ShishaPage })));
+const ShishaGalleryPage = lazy(() => import('@features/shisha-gallery').then(m => ({ default: m.ShishaGalleryPage })));
 const NotFound = lazy(() => import('@features/not-found'));
 
 /**
@@ -40,6 +41,7 @@ function App() {
               <Route path={ROUTES.HOME} element={<Landing />} />
               <Route path={ROUTES.MENU.GENERAL} element={<MenuPage />} />
               <Route path={ROUTES.SHISHA} element={<ShishaPage />} />
+              <Route path={ROUTES.GALERIA_CACHIMBAS} element={<ShishaGalleryPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>

@@ -15,7 +15,6 @@ function App() {
         <Routes>
 
           {/* Rutas públicas - accesibles sin autenticación */}
-          <Route path="/galeria-cachimbas" element={<GaleriaCachimbas />} />
           <Route path="/tracking" element={<OrderTrackingPage />} />
           <Route path="/tracking/:trackingNumber" element={<OrderTrackingPage />} />
 
