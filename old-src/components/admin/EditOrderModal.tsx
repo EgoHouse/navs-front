@@ -113,9 +113,9 @@ export const EditOrderModal: React.FC<EditOrderModalProps> = ({
   if (!isOpen) return null;
 
   return createPortal(
-    <div 
+    <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ 
+      style={{
         position: 'fixed',
         top: 0,
         left: 0,
@@ -128,8 +128,8 @@ export const EditOrderModal: React.FC<EditOrderModalProps> = ({
         className="absolute inset-0 bg-black/80 backdrop-blur-sm"
         onClick={onClose}
       />
-      
-      <div className="relative w-full max-w-2xl bg-gray-900 rounded-xl border border-gray-700 shadow-2xl max-h-[90vh] overflow-y-auto z-10">
+
+      <div className="relative w-full bg-gray-900 rounded-xl border border-gray-700 shadow-2xl max-h-[90vh] overflow-y-auto z-10">
         <form onSubmit={handleSubmit}>
           <div className="p-6">
             <div className="flex items-center justify-between mb-6">

@@ -1,6 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './providers/AuthProvider';
-import GaleriaCachimbas from './pages/GaleriaCachimbas';
 import AdminDashboard from './pages/AdminDashboard';
 import ProtectedRoute from './components/ProtectedRoute';
 import TableManagement from './pages/TableManagement';
@@ -13,10 +12,6 @@ function App() {
     <AuthProvider>
       <Router>
         <Routes>
-
-          {/* Rutas públicas - accesibles sin autenticación */}
-          <Route path="/tracking" element={<OrderTrackingPage />} />
-          <Route path="/tracking/:trackingNumber" element={<OrderTrackingPage />} />
 
           {/* Ruta de autenticación para usuarios normales */}
           <Route path="/auth" element={<AuthPage userType="user" />} />

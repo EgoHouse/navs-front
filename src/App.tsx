@@ -17,6 +17,7 @@ import Landing from '@features/landing';
 const MenuPage = lazy(() => import('@features/menu').then(m => ({ default: m.MenuPage })));
 const ShishaPage = lazy(() => import('@features/shisha').then(m => ({ default: m.ShishaPage })));
 const ShishaGalleryPage = lazy(() => import('@features/shisha-gallery').then(m => ({ default: m.ShishaGalleryPage })));
+const OrderTrackingPage = lazy(() => import('@features/order-tracking').then(m => ({ default: m.OrderTrackingPage })));
 const NotFound = lazy(() => import('@features/not-found'));
 
 /**
@@ -42,6 +43,8 @@ function App() {
               <Route path={ROUTES.MENU.GENERAL} element={<MenuPage />} />
               <Route path={ROUTES.SHISHA} element={<ShishaPage />} />
               <Route path={ROUTES.GALERIA_CACHIMBAS} element={<ShishaGalleryPage />} />
+              <Route path={ROUTES.TRACKING.BASE} element={<OrderTrackingPage />} />
+              <Route path={ROUTES.TRACKING.DETAIL} element={<OrderTrackingPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>

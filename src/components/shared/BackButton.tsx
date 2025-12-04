@@ -1,23 +1,22 @@
-import React from 'react';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Home } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { ROUTES } from '@lib/utils/routes';
 
-interface BackToMenuButtonProps {
+interface BackButtonProps {
   className?: string;
   variant?: 'home' | 'back';
   text?: string;
 }
 
-const BackToMenuButton: React.FC<BackToMenuButtonProps> = ({ 
-  className = '', 
-  variant = 'home',
-  text 
-}) => {
+/**
+ * Botón genérico para volver atrás o ir al inicio
+ */
+const BackButton = ({ className = '', variant = 'home', text }: BackButtonProps) => {
   const navigate = useNavigate();
 
   const handleClick = () => {
-    navigate('/');
+    navigate(ROUTES.HOME);
   };
 
   const defaultText = variant === 'home' ? 'Menú Principal' : 'Volver';
@@ -36,4 +35,4 @@ const BackToMenuButton: React.FC<BackToMenuButtonProps> = ({
   );
 };
 
-export default BackToMenuButton;
+export default BackButton;

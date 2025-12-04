@@ -1464,7 +1464,7 @@ export const OrderManagement: React.FC<OrderManagementProps> = () => {
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="relative w-full max-w-2xl bg-gray-900 rounded-xl border border-gray-700 p-6 shadow-2xl max-h-[90vh] overflow-y-auto z-10"
+              className="relative w-full bg-gray-900 rounded-xl border border-gray-700 p-6 shadow-2xl max-h-[90vh] overflow-y-auto z-10"
               onClick={(e: React.MouseEvent) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between mb-6">
