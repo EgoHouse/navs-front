@@ -64,7 +64,7 @@ const Footer = () => {
         </div>
 
         <div className="mt-12 border-t border-white/5 pt-8 text-center">
-          <p className="text-sm text-white/40">
+          <p className="text-sm text-white/60">
             © {currentYear} Ego House. Todos los derechos reservados.
           </p>
         </div>

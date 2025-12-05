@@ -96,11 +96,11 @@ const ShishaGallerySection = () => {
                   <span className="mb-3 block text-xs font-medium uppercase tracking-[0.2em] text-white/50">
                     01
                   </span>
-                  <h4 className="mb-4 text-2xl font-light leading-tight lg:text-3xl">
+                  <h3 className="mb-4 text-2xl font-light leading-tight lg:text-3xl">
                     {SHISHA_GALLERY.images[0].title.split(' ')[0]}
                     <br />
                     {SHISHA_GALLERY.images[0].title.split(' ')[1]}
-                  </h4>
+                  </h3>
                   <p className=" text-base font-light leading-relaxed text-white/70 lg:text-lg">
                     {SHISHA_GALLERY.images[0].description}
                   </p>
@@ -119,11 +119,11 @@ const ShishaGallerySection = () => {
                   <span className="mb-3 block text-xs font-medium uppercase tracking-[0.2em] text-white/50">
                     02
                   </span>
-                  <h4 className="mb-4 text-2xl font-light leading-tight lg:text-3xl">
+                  <h3 className="mb-4 text-2xl font-light leading-tight lg:text-3xl">
                     {SHISHA_GALLERY.images[1].title.split(' ')[0]}
                     <br />
                     {SHISHA_GALLERY.images[1].title.split(' ')[1]}
-                  </h4>
+                  </h3>
                   <p className="ml-auto text-base font-light leading-relaxed text-white/70 lg:text-lg">
                     {SHISHA_GALLERY.images[1].description}
                   </p>
@@ -170,11 +170,11 @@ const ShishaGallerySection = () => {
                   <span className="mb-3 block text-xs font-medium uppercase tracking-[0.2em] text-white/50">
                     03
                   </span>
-                  <h4 className="mb-4 text-2xl font-light leading-tight lg:text-3xl">
+                  <h3 className="mb-4 text-2xl font-light leading-tight lg:text-3xl">
                     {SHISHA_GALLERY.images[2].title.split(' ')[0]}
                     <br />
                     {SHISHA_GALLERY.images[2].title.split(' ')[1]}
-                  </h4>
+                  </h3>
                   <p className="text-base font-light leading-relaxed text-white/70 lg:text-lg">
                     {SHISHA_GALLERY.images[2].description}
                   </p>
