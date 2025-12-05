@@ -10,6 +10,9 @@ import { ROUTES } from '@lib/utils/routes';
 //* Modules
 import AuthProvider from '@modules/auth/providers/AuthProvider';
 
+//* Components
+import ProtectedRoute from '@components/shared/ProtectedRoute';
+
 //* Eager-loaded pages (critical for initial render)
 import Landing from '@features/landing';
 
@@ -19,6 +22,9 @@ const ShishaPage = lazy(() => import('@features/shisha').then(m => ({ default: m
 const ShishaGalleryPage = lazy(() => import('@features/shisha-gallery').then(m => ({ default: m.ShishaGalleryPage })));
 const OrderTrackingPage = lazy(() => import('@features/order-tracking').then(m => ({ default: m.OrderTrackingPage })));
 const AuthPage = lazy(() => import('@features/auth').then(m => ({ default: m.AuthPage })));
+const BreakfastPage = lazy(() => import('@features/breakfast').then(m => ({ default: m.BreakfastPage })));
+const AdminDashboardPage = lazy(() => import('@features/admin').then(m => ({ default: m.AdminDashboardPage })));
+const TableManagementPage = lazy(() => import('@features/table-management').then(m => ({ default: m.TableManagementPage })));
 const NotFound = lazy(() => import('@features/not-found'));
 
 /**
@@ -48,6 +54,30 @@ function App() {
               <Route path={ROUTES.TRACKING.DETAIL} element={<OrderTrackingPage />} />
               <Route path={ROUTES.AUTH.USER} element={<AuthPage userType="user" />} />
               <Route path={ROUTES.AUTH.ADMIN} element={<AuthPage userType="admin" />} />
+              <Route
+                path={ROUTES.DESAYUNOS}
+                element={
+                  <ProtectedRoute requireUser={true}>
+                    <BreakfastPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path={ROUTES.ADMIN.DASHBOARD}
+                element={
+                  <ProtectedRoute requireAdmin={true}>
+                    <AdminDashboardPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path={ROUTES.ADMIN.TABLES}
+                element={
+                  <ProtectedRoute requireAdmin={true}>
+                    <TableManagementPage />
+                  </ProtectedRoute>
+                }
+              />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>

@@ -11,7 +11,7 @@ const useAdminRedirect = () => {
 
   useEffect(() => {
     if (isAuthenticated && user?.role === 'ADMIN') {
-      navigate('/admin/dashboard', { replace: true });
+      navigate('/admin/tables', { replace: true });
     }
   }, [isAuthenticated, user, navigate]);
 };

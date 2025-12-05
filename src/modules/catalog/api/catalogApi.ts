@@ -323,3 +323,14 @@ export const getCatalogStats = async (): Promise<CatalogStats> => {
     totalSubsections,
   };
 };
+
+/**
+ * Catalog service object
+ */
+export const CatalogService = {
+  addItem,
+  deleteItem,
+  updateItem,
+  updateSubcategoryName,
+  updateSubsectionName,
+};

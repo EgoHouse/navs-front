@@ -33,7 +33,7 @@ export const ROUTES = {
 
   // Admin (Protected - Admin)
   ADMIN: {
-    DASHBOARD: '/admin/dashboard',
+    DASHBOARD: '/admin/tables',
     TABLES: '/admin/tables',
   },
 
