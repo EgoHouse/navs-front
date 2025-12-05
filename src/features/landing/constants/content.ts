@@ -17,7 +17,7 @@ export const HERO_CONTENT = {
 export const VIDEO_CONFIG = {
   url: 'https://res.cloudinary.com/dm70hhhnm/video/upload/f_auto,q_auto/Portada_1080_editada_bflw9o.mp4',
   poster: 'https://res.cloudinary.com/dm70hhhnm/image/upload/f_auto,q_auto/Portada_1080_editada_bflw9o.jpg',
-  mobileImage: 'https://res.cloudinary.com/dm70hhhnm/image/upload/v1764339989/HomeMobile_kqrytt.png',
+  mobileImage: 'https://res.cloudinary.com/dm70hhhnm/image/upload/f_auto,q_auto/v1764339989/HomeMobile_kqrytt.png',
   ariaLabel: 'Video de ambiente de EGO HOUSE Madrid',
 } as const;
 
@@ -38,22 +38,22 @@ export const SHISHA_GALLERY = {
   description: 'Descubre la esencia de nuestras cachimbas artesanales y los momentos especiales que se viven en EGO HOUSE.',
   ctaText: 'Explorar Galería',
   ctaLink: '/galeria-cachimbas',
-  backgroundImage: 'https://res.cloudinary.com/dm70hhhnm/image/upload/v1761478223/PAB01090_fnbn5o.jpg',
+  backgroundImage: 'https://res.cloudinary.com/dm70hhhnm/image/upload/f_auto,q_auto/v1761478223/PAB01090_fnbn5o.jpg',
   images: [
     {
-      url: 'https://res.cloudinary.com/dm70hhhnm/image/upload/v1759180344/_5046984_fvuzw1.jpg',
+      url: 'https://res.cloudinary.com/dm70hhhnm/image/upload/f_auto,q_auto/v1759180344/_5046984_fvuzw1.jpg',
       alt: 'Cachimba premium artesanal EGO HOUSE Madrid - Experiencia sensorial única',
       title: 'Premium Selection',
       description: 'Cachimbas artesanales seleccionadas especialmente para una experiencia sensorial única en EGO HOUSE Madrid',
     },
     {
-      url: 'https://res.cloudinary.com/dm70hhhnm/image/upload/v1759180344/_5046880_xvuv7k.jpg',
+      url: 'https://res.cloudinary.com/dm70hhhnm/image/upload/f_auto,q_auto/v1759180344/_5046880_xvuv7k.jpg',
       alt: 'Ambiente exclusivo cachimba Madrid EGO HOUSE - Momentos únicos compartidos',
       title: 'Ambiente Exclusivo',
       description: 'Un espacio diseñado para crear momentos inolvidables en cada sesión compartida en Madrid',
     },
     {
-      url: 'https://res.cloudinary.com/dm70hhhnm/image/upload/v1759180344/_5046973_igjg8n.jpg',
+      url: 'https://res.cloudinary.com/dm70hhhnm/image/upload/f_auto,q_auto/v1759180344/_5046973_igjg8n.jpg',
       alt: 'Sabores artesanales cachimba Madrid EGO HOUSE - Mezclas premium exclusivas',
       title: 'Sabores Artesanales',
       description: 'Mezclas únicas creadas por nuestros expertos para deleitar tus sentidos',
@@ -68,7 +68,7 @@ export const COCKTAIL_SECTION = {
     line2: 'alimentar tu ego',
   },
   subtitle: 'Cada persona tiene su cocktail perfecto. Nosotros lo creamos para ti.',
-  backgroundImage: 'https://res.cloudinary.com/dm70hhhnm/image/upload/v1764340727/fondoCocktail_n4ovj5.jpg',
+  backgroundImage: 'https://res.cloudinary.com/dm70hhhnm/image/upload/f_auto,q_auto/v1764340727/fondoCocktail_n4ovj5.jpg',
   backgroundAlt: 'Cocktails premium EGO HOUSE Madrid',
   features: [
     {

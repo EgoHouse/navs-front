@@ -2,10 +2,24 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import path from 'path';
+import viteCompression from 'vite-plugin-compression';
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [
+    react(),
+    tailwindcss(),
+    viteCompression({
+      algorithm: 'brotliCompress',
+      ext: '.br',
+      threshold: 1024,
+    }),
+    viteCompression({
+      algorithm: 'gzip',
+      ext: '.gz',
+      threshold: 1024,
+    }),
+  ],
 
   resolve: {
     alias: {
@@ -20,7 +34,7 @@ export default defineConfig({
 
   build: {
     target: 'esnext',
-    sourcemap: true,
+    sourcemap: false, // Disable sourcemaps for production to reduce size
     rollupOptions: {
       output: {
         manualChunks: {
@@ -29,6 +43,9 @@ export default defineConfig({
           'router-vendor': ['react-router-dom'],
           'state-vendor': ['zustand', '@tanstack/react-query'],
           'ui-vendor': ['framer-motion', 'lucide-react'],
+          // Split large features
+          'auth-feature': ['@modules/auth'],
+          'catalog-feature': ['@modules/catalog'],
         },
       },
     },
