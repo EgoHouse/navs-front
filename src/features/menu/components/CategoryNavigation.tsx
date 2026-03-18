@@ -29,8 +29,8 @@ export const CategoryNavigation = memo<CategoryNavigationProps>(
                 key={category.slug}
                 onClick={() => onCategorySelect(category.slug)}
                 className={`px-4 py-3 md:px-6 md:py-4 transition-all flex items-center space-x-2 border-b-2 ${isSelected
-                    ? 'border-yellow-400 text-yellow-400 bg-yellow-400/5'
-                    : 'border-transparent text-gray-400 hover:text-white hover:bg-white/5'
+                  ? 'border-yellow-400 text-yellow-400 bg-yellow-400/5'
+                  : 'border-transparent text-gray-400 hover:text-white hover:bg-white/5'
                   }`}
               >
                 <Icon size={18} className="md:w-5 md:h-5" />
@@ -57,8 +57,8 @@ export const CategoryNavigation = memo<CategoryNavigationProps>(
                     key={idx}
                     onClick={() => onSubcategorySelect(idx.toString())}
                     className={`px-3 py-1.5 md:px-4 md:py-2 rounded-full transition-all text-xs md:text-sm ${isSelected
-                        ? 'bg-yellow-400 text-black font-semibold shadow-lg shadow-yellow-400/20'
-                        : 'bg-gray-800/50 text-white hover:bg-gray-700/50 border border-gray-600/50'
+                      ? 'bg-yellow-400 text-black font-semibold shadow-lg shadow-yellow-400/20'
+                      : 'bg-gray-800/50 text-white hover:bg-gray-700/50 border border-gray-600/50'
                       }`}
                   >
                     {subcategory.name}
