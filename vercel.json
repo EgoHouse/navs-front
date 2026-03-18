@@ -3,7 +3,6 @@
   "devCommand": "pnpm run dev",
   "installCommand": "pnpm install",
   "outputDirectory": "dist",
-  "framework": "vite",
   "rewrites": [
     {
       "source": "/(.*)",
@@ -56,7 +55,6 @@
     }
   ],
   "trailingSlash": false,
-  "cleanUrls": true,
   "github": {
     "silent": true
   }
