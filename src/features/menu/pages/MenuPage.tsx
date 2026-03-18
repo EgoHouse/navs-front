@@ -15,14 +15,13 @@ import {
   CategoryNavigation,
   SubcategorySection,
   ImageModal,
+  AllergenPanel,
 } from '../components';
 
 //* Constants
 import {
   MENU_SEO,
   MENU_BACKGROUND_IMAGE,
-  CATEGORY_ICONS,
-  DEFAULT_CATEGORY_ICON,
   DEFAULT_CURRENCY,
 } from '../constants';
 
@@ -33,11 +32,14 @@ import {
 const MenuPage = () => {
   const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState<{
     url: string;
     name: string;
   } | null>(null);
+  const [expandedSubsections, setExpandedSubsections] = useState<Set<string>>(new Set());
+  const [isAllergenOpen, setIsAllergenOpen] = useState(false);
 
   // Fetch categories using React Query
   const { data: categories = [], isLoading, error, refetch } = useCategories();
@@ -47,11 +49,29 @@ const MenuPage = () => {
     window.scrollTo(0, 0);
   }, []);
 
-  // Filter categories based on selection
-  const filteredCategories = useMemo(() => {
-    if (!selectedCategory) return categories;
-    return categories.filter((cat) => cat.slug === selectedCategory);
+  // Select first category and subcategory by default
+  useEffect(() => {
+    const first = categories[0];
+    if (first && !selectedCategory) {
+      setSelectedCategory(first.slug);
+      if (first.subcategories.length > 0) {
+        setSelectedSubcategory('0');
+      }
+    }
+  }, [categories]);
+
+  // Get current category and subcategories
+  const currentCategory = useMemo(() => {
+    if (!selectedCategory) return null;
+    return categories.find((cat) => cat.slug === selectedCategory);
   }, [categories, selectedCategory]);
+
+  // Get current subcategory data
+  const currentSubcategoryData = useMemo(() => {
+    if (!currentCategory || !selectedSubcategory) return null;
+    const index = parseInt(selectedSubcategory);
+    return currentCategory.subcategories[index];
+  }, [currentCategory, selectedSubcategory]);
 
   // Handlers
   const handleImageClick = (imageUrl: string, itemName: string) => {
@@ -62,6 +82,35 @@ const MenuPage = () => {
   const closeModal = () => {
     setIsModalOpen(false);
     setSelectedImage(null);
+  };
+
+  const handleCategorySelect = (slug: string | null) => {
+    setSelectedCategory(slug);
+    setExpandedSubsections(new Set());
+    if (slug) {
+      const cat = categories.find((c) => c.slug === slug);
+      setSelectedSubcategory(cat && cat.subcategories.length > 0 ? '0' : null);
+    } else {
+      setSelectedSubcategory(null);
+    }
+  };
+
+  const handleSubcategorySelect = (index: string | null) => {
+    setSelectedSubcategory(index);
+    setExpandedSubsections(new Set());
+  };
+
+  const toggleSubsection = (subsectionIndex: number) => {
+    const key = `${subsectionIndex}`;
+    setExpandedSubsections(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(key)) {
+        newSet.delete(key);
+      } else {
+        newSet.add(key);
+      }
+      return newSet;
+    });
   };
 
   // Loading state
@@ -145,59 +194,61 @@ const MenuPage = () => {
         {/* Content */}
         <div className="relative z-20">
           {/* Header */}
-          <MenuHeader />
+          <MenuHeader
+            isAllergenOpen={isAllergenOpen}
+            onAllergenToggle={() => setIsAllergenOpen(prev => !prev)}
+          />
 
           {/* Category Navigation */}
           <CategoryNavigation
             categories={categories}
             selectedCategory={selectedCategory}
-            onCategorySelect={setSelectedCategory}
+            selectedSubcategory={selectedSubcategory}
+            onCategorySelect={handleCategorySelect}
+            onSubcategorySelect={handleSubcategorySelect}
+            currentCategory={currentCategory ?? null}
           />
 
           {/* Menu Content */}
           <div className="max-w-6xl mx-auto px-4 py-8">
             <AnimatePresence mode="wait">
-              <motion.div
-                key={selectedCategory || 'all'}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.3 }}
-                className="space-y-12"
-              >
-                {filteredCategories.map((category, categoryIdx) => {
-                  const Icon = CATEGORY_ICONS[category.slug] || DEFAULT_CATEGORY_ICON;
-                  return (
-                    <div key={categoryIdx} className="space-y-8">
-                      {/* Category title if showing all */}
-                      {!selectedCategory && (
-                        <motion.div
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          className="text-center py-8"
-                        >
-                          <div className="flex items-center justify-center space-x-4 mb-4">
-                            <Icon className="text-yellow-400" size={40} />
-                            <h2 className="text-4xl font-bold text-white">{category.name}</h2>
-                          </div>
-                          <div className="w-24 h-1 bg-yellow-400 mx-auto rounded-full" />
-                        </motion.div>
-                      )}
-
-                      {/* Subcategories */}
-                      {category.subcategories.map((subcategory, idx) => (
-                        <SubcategorySection
-                          key={idx}
-                          subcategory={subcategory}
-                          currency={DEFAULT_CURRENCY}
-                          isSignature={subcategory.type === 'signature'}
-                          onImageClick={handleImageClick}
-                        />
-                      ))}
-                    </div>
-                  );
-                })}
-              </motion.div>
+              {/* Show content only if a category and subcategory are selected */}
+              {selectedCategory && selectedSubcategory && currentSubcategoryData ? (
+                <motion.div
+                  key={`${selectedCategory}-${selectedSubcategory}`}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <SubcategorySection
+                    subcategory={currentSubcategoryData}
+                    currency={DEFAULT_CURRENCY}
+                    isSignature={currentSubcategoryData.type === 'signature'}
+                    onImageClick={handleImageClick}
+                    expandedSubsections={expandedSubsections}
+                    onToggleSubsection={toggleSubsection}
+                  />
+                </motion.div>
+              ) : (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3 }}
+                  className="text-center py-16"
+                >
+                  <UtensilsCrossed className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-2xl font-bold text-white mb-2">
+                    {selectedCategory ? 'Selecciona una subcategoría' : 'Selecciona una categoría'}
+                  </h3>
+                  <p className="text-gray-400">
+                    {selectedCategory
+                      ? 'Elige una de las subcategorías arriba para ver los productos'
+                      : 'Elige una categoría en las pestañas de arriba para empezar'}
+                  </p>
+                </motion.div>
+              )}
             </AnimatePresence>
           </div>
 
@@ -210,6 +261,12 @@ const MenuPage = () => {
             </div>
           </div>
         </div>
+
+        {/* Allergen Panel */}
+        <AllergenPanel
+          isOpen={isAllergenOpen}
+          onClose={() => setIsAllergenOpen(false)}
+        />
 
         {/* Image Modal */}
         {isModalOpen && selectedImage && (

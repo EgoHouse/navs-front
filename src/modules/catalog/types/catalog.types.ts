@@ -1,7 +1,7 @@
 // ===== MENU ITEM TYPES =====
 
 export interface MenuVariant {
-  size: string;
+  name: string;
   price: number;
 }
 
@@ -67,7 +67,7 @@ export interface CreateCategoryRequest {
   subcategories?: MenuSubcategory[];
 }
 
-export interface UpdateCategoryRequest extends Partial<CreateCategoryRequest> {}
+export interface UpdateCategoryRequest extends Partial<CreateCategoryRequest> { }
 
 export interface AddItemRequest {
   categoryId: string;

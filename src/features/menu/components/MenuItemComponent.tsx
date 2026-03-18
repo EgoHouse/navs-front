@@ -2,7 +2,7 @@ import { memo } from 'react';
 import { motion } from 'framer-motion';
 import { formatPrice } from '@lib/utils/format';
 import { ProductImage, ProductImagePlaceholder } from './ProductImage';
-import { DEFAULT_CURRENCY } from '../constants';
+import { DEFAULT_CURRENCY, getAllergensForItem, ALLERGEN_ICON_MAP } from '../constants';
 import type { MenuItem } from '@modules/catalog/types';
 
 interface MenuItemComponentProps {
@@ -22,14 +22,15 @@ export const MenuItemComponent = memo<MenuItemComponentProps>(
       }
     };
 
+    const allergenNames = getAllergensForItem(item.name);
+
     return (
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         onClick={handleCardClick}
-        className={`bg-gray-900/50 backdrop-blur-sm rounded-xl p-4 border border-gray-700/50 hover:border-yellow-400/30 transition-all duration-300 ${
-          item.imageUrl ? 'cursor-pointer' : ''
-        }`}
+        className={`bg-gray-900/50 backdrop-blur-sm rounded-xl p-4 border border-gray-700/50 hover:border-yellow-400/30 transition-all duration-300 ${item.imageUrl ? 'cursor-pointer' : ''
+          }`}
       >
         <div className="flex items-start space-x-4">
           {/* Image or placeholder */}
@@ -48,7 +49,7 @@ export const MenuItemComponent = memo<MenuItemComponentProps>(
                   <div className="space-y-1">
                     {item.variants.map((variant, idx) => (
                       <div key={idx} className="text-sm">
-                        <span className="text-gray-300">{variant.size}: </span>
+                        <span className="text-white">{variant.name}:</span>{' '}
                         <span className="text-yellow-400">{formatPrice(variant.price, currency)}</span>
                       </div>
                     ))}
@@ -70,6 +71,24 @@ export const MenuItemComponent = memo<MenuItemComponentProps>(
             )}
 
             {item.notes && <p className="text-gray-400 text-xs">{item.notes}</p>}
+
+            {allergenNames.length > 0 && (
+              <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+                {allergenNames.map((name) => {
+                  const Icon = ALLERGEN_ICON_MAP[name];
+                  if (!Icon) return null;
+                  return (
+                    <div
+                      key={name}
+                      className="w-6 h-6 flex items-center justify-center rounded bg-yellow-400/20 border border-yellow-400/40"
+                      title={name}
+                    >
+                      <Icon size={14} className="text-yellow-400" />
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
       </motion.div>

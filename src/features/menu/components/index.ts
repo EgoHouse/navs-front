@@ -4,3 +4,4 @@ export * from './MenuItemComponent';
 export * from './SubcategorySection';
 export * from './CategoryNavigation';
 export * from './MenuHeader';
+export * from './AllergenSection';
