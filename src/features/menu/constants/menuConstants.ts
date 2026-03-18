@@ -27,6 +27,17 @@ export const DEFAULT_CATEGORY_ICON = Utensils;
 export const DEFAULT_CURRENCY = '€';
 
 /**
+ * Category display order (by slug)
+ */
+export const CATEGORY_ORDER: string[] = [
+  'entrantes',
+  'comidas',
+  'batidos',
+  'postres',
+  'bebidas',
+];
+
+/**
  * Image optimization widths for different use cases
  */
 export const IMAGE_WIDTHS = {

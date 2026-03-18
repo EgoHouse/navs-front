@@ -23,6 +23,7 @@ import {
   MENU_SEO,
   MENU_BACKGROUND_IMAGE,
   DEFAULT_CURRENCY,
+  CATEGORY_ORDER,
 } from '../constants';
 
 /**
@@ -38,11 +39,19 @@ const MenuPage = () => {
     url: string;
     name: string;
   } | null>(null);
-  const [expandedSubsections, setExpandedSubsections] = useState<Set<string>>(new Set());
   const [isAllergenOpen, setIsAllergenOpen] = useState(false);
 
   // Fetch categories using React Query
   const { data: categories = [], isLoading, error, refetch } = useCategories();
+
+  // Sort categories by predefined order
+  const sortedCategories = useMemo(() => {
+    return [...categories].sort((a, b) => {
+      const indexA = CATEGORY_ORDER.indexOf(a.slug);
+      const indexB = CATEGORY_ORDER.indexOf(b.slug);
+      return (indexA === -1 ? Infinity : indexA) - (indexB === -1 ? Infinity : indexB);
+    });
+  }, [categories]);
 
   // Scroll to top on mount
   useEffect(() => {
@@ -51,20 +60,20 @@ const MenuPage = () => {
 
   // Select first category and subcategory by default
   useEffect(() => {
-    const first = categories[0];
+    const first = sortedCategories[0];
     if (first && !selectedCategory) {
       setSelectedCategory(first.slug);
       if (first.subcategories.length > 0) {
         setSelectedSubcategory('0');
       }
     }
-  }, [categories]);
+  }, [sortedCategories]);
 
   // Get current category and subcategories
   const currentCategory = useMemo(() => {
     if (!selectedCategory) return null;
-    return categories.find((cat) => cat.slug === selectedCategory);
-  }, [categories, selectedCategory]);
+    return sortedCategories.find((cat) => cat.slug === selectedCategory);
+  }, [sortedCategories, selectedCategory]);
 
   // Get current subcategory data
   const currentSubcategoryData = useMemo(() => {
@@ -86,9 +95,8 @@ const MenuPage = () => {
 
   const handleCategorySelect = (slug: string | null) => {
     setSelectedCategory(slug);
-    setExpandedSubsections(new Set());
     if (slug) {
-      const cat = categories.find((c) => c.slug === slug);
+      const cat = sortedCategories.find((c) => c.slug === slug);
       setSelectedSubcategory(cat && cat.subcategories.length > 0 ? '0' : null);
     } else {
       setSelectedSubcategory(null);
@@ -97,21 +105,9 @@ const MenuPage = () => {
 
   const handleSubcategorySelect = (index: string | null) => {
     setSelectedSubcategory(index);
-    setExpandedSubsections(new Set());
   };
 
-  const toggleSubsection = (subsectionIndex: number) => {
-    const key = `${subsectionIndex}`;
-    setExpandedSubsections(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(key)) {
-        newSet.delete(key);
-      } else {
-        newSet.add(key);
-      }
-      return newSet;
-    });
-  };
+
 
   // Loading state
   if (isLoading) {
@@ -201,7 +197,7 @@ const MenuPage = () => {
 
           {/* Category Navigation */}
           <CategoryNavigation
-            categories={categories}
+            categories={sortedCategories}
             selectedCategory={selectedCategory}
             selectedSubcategory={selectedSubcategory}
             onCategorySelect={handleCategorySelect}
@@ -226,8 +222,6 @@ const MenuPage = () => {
                     currency={DEFAULT_CURRENCY}
                     isSignature={currentSubcategoryData.type === 'signature'}
                     onImageClick={handleImageClick}
-                    expandedSubsections={expandedSubsections}
-                    onToggleSubsection={toggleSubsection}
                   />
                 </motion.div>
               ) : (

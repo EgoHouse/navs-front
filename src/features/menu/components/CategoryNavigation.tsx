@@ -20,7 +20,7 @@ export const CategoryNavigation = memo<CategoryNavigationProps>(
     <div className="bg-black/20 backdrop-blur-sm border-b border-gray-700/50">
       <div className="max-w-6xl mx-auto px-4">
         {/* Category Tabs - wrap en móvil */}
-        <div className="flex flex-wrap border-b border-gray-700/30">
+        <div className="flex flex-wrap justify-center border-b border-gray-700/30">
           {categories.map((category) => {
             const Icon = CATEGORY_ICONS[category.slug] || DEFAULT_CATEGORY_ICON;
             const isSelected = selectedCategory === category.slug;
@@ -49,7 +49,7 @@ export const CategoryNavigation = memo<CategoryNavigationProps>(
             transition={{ duration: 0.2 }}
             className="py-3 md:py-4"
           >
-            <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+            <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:justify-center">
               {currentCategory.subcategories.map((subcategory, idx) => {
                 const isSelected = selectedSubcategory === idx.toString();
                 return (
