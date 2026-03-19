@@ -56,7 +56,7 @@ export const MENU_SEO = {
     'Explora la carta completa de EGO HOUSE Madrid. Bebidas premium, desayunos gourmet, meriendas exquisitas y cocktails de autor en un ambiente único.',
   keywords:
     'carta ego house madrid, menú completo madrid, bebidas premium madrid, desayunos madrid, cocktails madrid, gastronomía madrid, restaurante madrid',
-  url: 'https://www.egohousebynavs.com/menu/general',
+  url: 'https://www.egohousebynavs.com/menu',
   image: '/comida.jpg',
 } as const;
 
