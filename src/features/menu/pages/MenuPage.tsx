@@ -53,9 +53,12 @@ const MenuPage = () => {
     });
   }, [categories]);
 
-  // Scroll to top on mount
+  // Scroll to top on mount — force immediate positioning
   useEffect(() => {
-    window.scrollTo(0, 0);
+    if ('scrollRestoration' in history) {
+      history.scrollRestoration = 'manual';
+    }
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
   }, []);
 
   // Select first category and subcategory by default

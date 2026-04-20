@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
 
@@ -48,6 +48,7 @@ function App() {
             <Routes>
               <Route path={ROUTES.HOME} element={<Landing />} />
               <Route path={ROUTES.MENU.GENERAL} element={<MenuPage />} />
+              <Route path="/menu/*" element={<Navigate to={ROUTES.MENU.GENERAL} replace />} />
               <Route path={ROUTES.SHISHA} element={<ShishaPage />} />
               <Route path={ROUTES.GALERIA_CACHIMBAS} element={<ShishaGalleryPage />} />
               <Route path={ROUTES.TRACKING.BASE} element={<OrderTrackingPage />} />
