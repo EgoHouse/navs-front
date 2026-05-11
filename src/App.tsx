@@ -7,12 +7,6 @@ import { Loader2 } from 'lucide-react';
 import { queryClient } from '@lib/api/queryClient';
 import { ROUTES } from '@lib/utils/routes';
 
-//* Modules
-import AuthProvider from '@modules/auth/providers/AuthProvider';
-
-//* Components
-import ProtectedRoute from '@components/shared/ProtectedRoute';
-
 //* Eager-loaded pages (critical for initial render)
 import Landing from '@features/landing';
 
@@ -20,11 +14,6 @@ import Landing from '@features/landing';
 const MenuPage = lazy(() => import('@features/menu').then(m => ({ default: m.MenuPage })));
 const ShishaPage = lazy(() => import('@features/shisha').then(m => ({ default: m.ShishaPage })));
 const ShishaGalleryPage = lazy(() => import('@features/shisha-gallery').then(m => ({ default: m.ShishaGalleryPage })));
-const OrderTrackingPage = lazy(() => import('@features/order-tracking').then(m => ({ default: m.OrderTrackingPage })));
-const AuthPage = lazy(() => import('@features/auth').then(m => ({ default: m.AuthPage })));
-const BreakfastPage = lazy(() => import('@features/breakfast').then(m => ({ default: m.BreakfastPage })));
-const AdminDashboardPage = lazy(() => import('@features/admin').then(m => ({ default: m.AdminDashboardPage })));
-const TableManagementPage = lazy(() => import('@features/table-management').then(m => ({ default: m.TableManagementPage })));
 const NotFound = lazy(() => import('@features/not-found'));
 
 /**
@@ -42,48 +31,18 @@ const PageLoader = () => (
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <Router>
-          <Suspense fallback={<PageLoader />}>
-            <Routes>
-              <Route path={ROUTES.HOME} element={<Landing />} />
-              <Route path={ROUTES.MENU.GENERAL} element={<MenuPage />} />
-              <Route path="/menu/*" element={<Navigate to={ROUTES.MENU.GENERAL} replace />} />
-              <Route path={ROUTES.SHISHA} element={<ShishaPage />} />
-              <Route path={ROUTES.GALERIA_CACHIMBAS} element={<ShishaGalleryPage />} />
-              <Route path={ROUTES.TRACKING.BASE} element={<OrderTrackingPage />} />
-              <Route path={ROUTES.TRACKING.DETAIL} element={<OrderTrackingPage />} />
-              <Route path={ROUTES.AUTH.USER} element={<AuthPage userType="user" />} />
-              <Route path={ROUTES.AUTH.ADMIN} element={<AuthPage userType="admin" />} />
-              <Route
-                path={ROUTES.DESAYUNOS}
-                element={
-                  <ProtectedRoute requireUser={true}>
-                    <BreakfastPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path={ROUTES.ADMIN.DASHBOARD}
-                element={
-                  <ProtectedRoute requireAdmin={true}>
-                    <AdminDashboardPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path={ROUTES.ADMIN.TABLES}
-                element={
-                  <ProtectedRoute requireAdmin={true}>
-                    <TableManagementPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Suspense>
-        </Router>
-      </AuthProvider>
+      <Router>
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
+            <Route path={ROUTES.HOME} element={<Landing />} />
+            <Route path={ROUTES.MENU.GENERAL} element={<MenuPage />} />
+            <Route path="/menu/*" element={<Navigate to={ROUTES.MENU.GENERAL} replace />} />
+            <Route path={ROUTES.SHISHA} element={<ShishaPage />} />
+            <Route path={ROUTES.GALERIA_CACHIMBAS} element={<ShishaGalleryPage />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Suspense>
+      </Router>
     </QueryClientProvider>
   );
 }

@@ -5,32 +5,10 @@
 export const APP_NAME = 'EGO HOUSE by NAVS';
 export const APP_VERSION = '2.0.0';
 
-export const API_CONFIG = {
-  BASE_URL: import.meta.env.VITE_BASE_URL || 'http://localhost:3000',
-  TIMEOUT: Number(import.meta.env.VITE_TIMEOUT) || 10000,
-  JWT_TOKEN_KEY: import.meta.env.VITE_JWT_TOKEN_KEY || 'navs_auth_token',
-} as const;
-
-// Cloudinary - Solo se usan URLs del backend, no se suben archivos desde frontend
+// Cloudinary - Solo se consumen URLs públicas; el frontend no sube archivos
 export const CLOUDINARY_CLOUD_NAME = 'dm70hhhnm';
 export const CLOUDINARY_BASE_URL =
   `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}` as const;
-
-export const STORAGE_KEYS = {
-  AUTH_TOKEN: API_CONFIG.JWT_TOKEN_KEY,
-  USER: 'navs_user',
-  THEME: 'navs_theme',
-} as const;
-
-export const HTTP_STATUS = {
-  OK: 200,
-  CREATED: 201,
-  BAD_REQUEST: 400,
-  UNAUTHORIZED: 401,
-  FORBIDDEN: 403,
-  NOT_FOUND: 404,
-  INTERNAL_SERVER_ERROR: 500,
-} as const;
 
 /**
  * SEO Constants
