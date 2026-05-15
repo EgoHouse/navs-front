@@ -98,7 +98,7 @@ export const MENU_CATEGORIES: Category[] = [
             name: "Tequeños",
             price: 9,
             description: "Palitos de queso fundente envueltos en masa tradicional, servidos con un toque dulce de sirope de fresa.",
-            imageUrl: "https://res.cloudinary.com/dm70hhhnm/image/upload/TEQUEÃOS_vftqlw",
+            imageUrl: "https://res.cloudinary.com/dm70hhhnm/image/upload/TEQUEÑOS_vftqlw",
             variants: []
           },
           {
@@ -267,14 +267,14 @@ export const MENU_CATEGORIES: Category[] = [
                 name: "Piña colada",
                 price: 9,
                 description: "Un viaje al trópico con ron, crema de coco cremosa y zumo de piña natural.",
-                imageUrl: "https://res.cloudinary.com/dm70hhhnm/image/upload/PIÃA_COLADA_iuojwr",
+                imageUrl: "https://res.cloudinary.com/dm70hhhnm/image/upload/PIÑA_COLADA_iuojwr",
                 variants: []
               },
               {
                 name: "Daiquiri clásico",
                 price: 9,
                 description: "Elegante y equilibrada mezcla de ron blanco, zumo de lima recién exprimido y un toque de azúcar.",
-                imageUrl: "https://res.cloudinary.com/dm70hhhnm/image/upload/Daiquiri_clÃ¡sico_m2cqc0",
+                imageUrl: "https://res.cloudinary.com/dm70hhhnm/image/upload/Daiquiri_clásico_m2cqc0",
                 variants: []
               },
               {
@@ -309,7 +309,7 @@ export const MENU_CATEGORIES: Category[] = [
                 name: "Caipirinha",
                 price: 9,
                 description: "El alma de Brasil: Cachaça, trozos de lima fresca y azúcar macerados con hielo pilé.",
-                imageUrl: "https://res.cloudinary.com/dm70hhhnm/image/upload/v1759172217/CAIPIRIÃA_lozz49.jpg",
+                imageUrl: "https://res.cloudinary.com/dm70hhhnm/image/upload/v1759172217/CAIPIRIÑA_lozz49.jpg",
                 variants: []
               }
             ]
@@ -1022,7 +1022,7 @@ export const MENU_CATEGORIES: Category[] = [
           {
             name: "Nestea de maracuyá",
             price: 3.5,
-            imageUrl: "https://res.cloudinary.com/dm70hhhnm/image/upload/v1759413211/Nestea_de_maracuyÃ¡_qfdwdy.png",
+            imageUrl: "https://res.cloudinary.com/dm70hhhnm/image/upload/v1759413211/Nestea_de_maracuyá_qfdwdy.png",
             variants: []
           },
           {
@@ -1199,7 +1199,7 @@ export const MENU_CATEGORIES: Category[] = [
           {
             name: "Zumo de piña",
             price: 2.5,
-            imageUrl: "https://res.cloudinary.com/dm70hhhnm/image/upload/v1759416343/Zumo_piÃ±a_e4edq1.png",
+            imageUrl: "https://res.cloudinary.com/dm70hhhnm/image/upload/v1759416343/Zumo_piña_e4edq1.png",
             variants: []
           },
           {

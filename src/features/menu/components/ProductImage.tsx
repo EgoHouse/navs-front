@@ -38,6 +38,9 @@ export const ProductImage = memo<ProductImageProps>(({ imageUrl, name }) => {
         className="w-full h-full object-cover transition-transform duration-300"
         loading="lazy"
         decoding="async"
+        fetchPriority="low"
+        width={64}
+        height={64}
       />
     </div>
   );
