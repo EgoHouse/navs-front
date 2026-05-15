@@ -41,10 +41,9 @@ export default defineConfig({
           // Vendor chunks
           'react-vendor': ['react', 'react-dom'],
           'router-vendor': ['react-router-dom'],
-          'state-vendor': ['zustand', '@tanstack/react-query'],
+          'query-vendor': ['@tanstack/react-query'],
           'ui-vendor': ['framer-motion', 'lucide-react'],
           // Split large features
-          'auth-feature': ['@modules/auth'],
           'catalog-feature': ['@modules/catalog'],
         },
       },
@@ -56,13 +55,6 @@ export default defineConfig({
     port: 5173,
     strictPort: true,
     host: true,
-    proxy: {
-      '/api': {
-        target: process.env.VITE_API_BASE_URL || 'http://localhost:3000',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ''),
-      },
-    },
   },
 
   preview: {

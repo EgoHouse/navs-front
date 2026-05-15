@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { X } from 'lucide-react';
+import { getResponsiveCloudinarySet } from '@lib/utils/cloudinary';
 
 interface ImageModalProps {
   imageUrl: string | null;
@@ -11,6 +12,8 @@ interface ImageModalProps {
  */
 const ImageModal = ({ imageUrl, onClose }: ImageModalProps) => {
   if (!imageUrl) return null;
+
+  const { src, srcset } = getResponsiveCloudinarySet(imageUrl);
 
   return (
     <motion.div
@@ -41,9 +44,14 @@ const ImageModal = ({ imageUrl, onClose }: ImageModalProps) => {
         className="relative flex items-center justify-center w-full h-full px-4"
       >
         <img
-          src={imageUrl}
+          src={src || imageUrl}
+          srcSet={srcset}
+          sizes="90vw"
           alt="Cachimba ampliada"
           className="max-w-[90vw] max-h-[85vh] w-auto h-auto object-contain rounded-xl shadow-2xl"
+          loading="eager"
+          decoding="async"
+          fetchPriority="high"
         />
       </motion.div>
     </motion.div>

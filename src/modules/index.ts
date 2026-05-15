@@ -1,2 +1,2 @@
-// Auth Module
-export * from './auth';
+// Catalog Module (carta estática)
+export * from './catalog';

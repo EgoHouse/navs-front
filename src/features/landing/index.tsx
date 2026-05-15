@@ -11,16 +11,11 @@ import ShishaGallerySection from './sections/ShishaGallerySection';
 import CocktailSection from './sections/CocktailSection';
 import LocationSection from './sections/LocationSection';
 
-//* Hooks
-import useAdminRedirect from './hooks/useAdminRedirect';
-
 //* Constants
 import { LANDING_SEO } from './constants/seo';
 import { WHATSAPP_CONFIG } from './constants/content';
 
 const LandingPage = () => {
-  useAdminRedirect();
-
   return (
     <>
       <SEO {...LANDING_SEO} />

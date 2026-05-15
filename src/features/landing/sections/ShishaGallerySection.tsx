@@ -3,15 +3,21 @@ import { ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 //* Libs
-import { getOptimizedCloudinaryUrl } from '@lib/utils/cloudinary';
+import { getOptimizedCloudinaryUrl, getResponsiveCloudinarySet } from '@lib/utils/cloudinary';
 
 //* Constants
 import { SHISHA_GALLERY } from '../constants/content';
 import { containerVariants, itemVariants, imageVariants } from '../constants/animations';
 
+// El fondo cubre la mitad derecha en lg y todo el ancho en móvil.
+const BACKGROUND_SIZES = '(min-width: 1024px) 50vw, 100vw';
+const backgroundSet = getResponsiveCloudinarySet(SHISHA_GALLERY.backgroundImage);
+
 const ShishaGallerySection = () => {
   const navigate = useNavigate();
 
+  // Miniaturas pequeñas (max ~256px): un único ancho fijo con dpr_auto rinde
+  // menos bytes que un srcset que arranca en 320.
   const optimizedImages = {
     image1: getOptimizedCloudinaryUrl(SHISHA_GALLERY.images[0].url, {
       quality: 'auto',
@@ -27,11 +33,6 @@ const ShishaGallerySection = () => {
       quality: 'auto',
       format: 'auto',
       width: 400,
-    }),
-    background: getOptimizedCloudinaryUrl(SHISHA_GALLERY.backgroundImage, {
-      quality: 'auto',
-      format: 'auto',
-      width: 1200,
     }),
   };
 
@@ -207,9 +208,13 @@ const ShishaGallerySection = () => {
           {/* Imagen de fondo */}
           <div className="absolute inset-0 h-full w-full overflow-hidden">
             <img
-              src={optimizedImages.background}
+              src={backgroundSet.src}
+              srcSet={backgroundSet.srcset}
+              sizes={BACKGROUND_SIZES}
               alt="Fondo galería cachimbas"
               className="h-full w-full object-cover"
+              loading="lazy"
+              decoding="async"
             />
             <div className="absolute inset-0 bg-black/60" />
           </div>

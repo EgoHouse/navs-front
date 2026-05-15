@@ -5,9 +5,12 @@ import { useNavigate } from 'react-router-dom';
 
 import SEO from '@components/common/SEO';
 import { ROUTES } from '@lib/utils/routes';
+import { getResponsiveCloudinarySet } from '@lib/utils/cloudinary';
 
 import { CategoryTabs, GalleryGrid, ImageModal } from '../components';
 import { GALLERY_SEO, FEATURED_IMAGE, type CategoryId } from '../constants';
+
+const FEATURED_IMAGE_SET = getResponsiveCloudinarySet(FEATURED_IMAGE);
 
 /**
  * Página de galería de cachimbas
@@ -59,9 +62,14 @@ const ShishaGalleryPage = () => {
         {/* Banner superior */}
         <div className="relative h-64 md:h-100 overflow-hidden">
           <img
-            src={FEATURED_IMAGE}
+            src={FEATURED_IMAGE_SET.src || FEATURED_IMAGE}
+            srcSet={FEATURED_IMAGE_SET.srcset}
+            sizes="100vw"
             alt="Banner galería de cachimbas"
             className="w-full h-full object-cover"
+            loading="eager"
+            decoding="async"
+            fetchPriority="high"
           />
           <div className="absolute inset-0 bg-black/40" />
 

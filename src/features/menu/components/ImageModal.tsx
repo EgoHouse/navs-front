@@ -1,8 +1,12 @@
 import { memo, useEffect, useState } from 'react';
 import { X, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getOptimizedCloudinaryUrl } from '@lib/utils/cloudinary';
+import { getOptimizedCloudinaryUrl, getResponsiveCloudinarySet } from '@lib/utils/cloudinary';
 import { IMAGE_WIDTHS } from '../constants';
+
+// El modal se limita a max-w-4xl (≈896 px) y al 90vh. En móvil ocupa todo el
+// ancho disponible; el navegador elige el srcset óptimo a partir de aquí.
+const MODAL_SIZES = '(min-width: 1024px) 896px, 90vw';
 
 interface ImageModalProps {
   isOpen: boolean;
@@ -36,10 +40,7 @@ export const ImageModal = memo<ImageModalProps>(({ isOpen, imageUrl, itemName, o
 
   if (!isOpen) return null;
 
-  const optimizedModalUrl = getOptimizedCloudinaryUrl(imageUrl, {
-    width: IMAGE_WIDTHS.MODAL,
-    quality: 'auto',
-  });
+  const modalSet = getResponsiveCloudinarySet(imageUrl);
 
   const thumbnailUrl = getOptimizedCloudinaryUrl(imageUrl, {
     width: IMAGE_WIDTHS.THUMBNAIL,
@@ -97,13 +98,17 @@ export const ImageModal = memo<ImageModalProps>(({ isOpen, imageUrl, itemName, o
 
               {/* Main Image */}
               <img
-                src={optimizedModalUrl || imageUrl}
+                src={modalSet.src || imageUrl}
+                srcSet={modalSet.srcset}
+                sizes={MODAL_SIZES}
                 alt={itemName}
                 className={`w-full h-auto max-h-[80vh] object-contain transition-opacity duration-500 ${
                   imageLoaded ? 'opacity-100' : 'opacity-0'
                 }`}
                 onLoad={() => setImageLoaded(true)}
                 loading="eager"
+                decoding="async"
+                fetchPriority="high"
               />
             </div>
 

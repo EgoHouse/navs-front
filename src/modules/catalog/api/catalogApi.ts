@@ -1,4 +1,5 @@
-import { apiClient } from '@lib/api/apiClient';
+import { MENU_CATEGORIES } from '../data/menuData';
+
 import type {
   Category,
   MenuItem,
@@ -14,66 +15,117 @@ import type {
   DeleteItemResponse,
 } from '../types';
 
-// ===== PUBLIC ENDPOINTS (No authentication required) =====
+/**
+ * Catálogo estático: la carta está hardcodeada en `../data/menuData.ts`.
+ * Esta capa ya no realiza ninguna petición a backend; simplemente expone los
+ * datos en memoria con la misma forma que tenían las antiguas llamadas a la API
+ * para no romper a los consumidores existentes.
+ */
+
+const BACKEND_DISABLED_MESSAGE =
+  'La administración de la carta está deshabilitada: el menú es estático y no hay backend.';
+
+/** Devuelve una copia profunda para evitar mutaciones accidentales del catálogo. */
+const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
+
+const normalize = (value: string): string =>
+  value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+
+// ===== PUBLIC ENDPOINTS =====
 
 /**
  * Get all categories from catalog
  */
 export const getAllCategories = async (): Promise<Category[]> => {
-  const response = await apiClient.get<Category[]>('/catalog');
-  return response.data;
+  return clone(MENU_CATEGORIES);
 };
 
 /**
  * Get full menu (alias of getAllCategories)
  */
 export const getFullMenu = async (): Promise<Category[]> => {
-  const response = await apiClient.get<Category[]>('/catalog/menu');
-  return response.data;
+  return clone(MENU_CATEGORIES);
 };
 
 /**
  * Get category by ID
  */
 export const getCategoryById = async (id: string): Promise<Category> => {
-  const response = await apiClient.get<Category>(`/catalog/category/${id}`);
-  return response.data;
+  const category = MENU_CATEGORIES.find((c) => c.id === id);
+  if (!category) {
+    throw new Error(`Categoría no encontrada: ${id}`);
+  }
+  return clone(category);
 };
 
 /**
  * Get category by slug
  */
 export const getCategoryBySlug = async (slug: string): Promise<Category> => {
-  const response = await apiClient.get<Category>(`/catalog/slug/${slug}`);
-  return response.data;
+  const category = MENU_CATEGORIES.find((c) => c.slug === slug);
+  if (!category) {
+    throw new Error(`Categoría no encontrada: ${slug}`);
+  }
+  return clone(category);
 };
 
 /**
  * Get items from a specific category
  */
 export const getCategoryItems = async (categoryId: string): Promise<MenuItem[]> => {
-  const response = await apiClient.get<MenuItem[]>(`/catalog/category/${categoryId}/items`);
-  return response.data;
+  const category = await getCategoryById(categoryId);
+  const items: MenuItem[] = [];
+  category.subcategories.forEach((subcategory) => {
+    if (subcategory.items) {items.push(...subcategory.items);}
+    subcategory.subsections?.forEach((subsection) => items.push(...subsection.items));
+  });
+  return items;
 };
 
 /**
  * Search categories by term
  */
 export const searchCategories = async (searchTerm: string): Promise<Category[]> => {
-  const response = await apiClient.get<Category[]>('/catalog/search/categories', {
-    params: { q: searchTerm },
-  });
-  return response.data;
+  const term = normalize(searchTerm);
+  if (!term) {return [];}
+  return clone(MENU_CATEGORIES.filter((c) => normalize(c.name).includes(term)));
 };
 
 /**
- * Search items by term
+ * Search items by term (returns categories containing matching items)
  */
 export const searchItems = async (searchTerm: string): Promise<Category[]> => {
-  const response = await apiClient.get<Category[]>('/catalog/search/items', {
-    params: { q: searchTerm },
-  });
-  return response.data;
+  const term = normalize(searchTerm);
+  if (!term) {return [];}
+
+  const matchItem = (item: MenuItem) => normalize(item.name).includes(term);
+
+  const result: Category[] = [];
+  for (const category of MENU_CATEGORIES) {
+    const subcategories = category.subcategories
+      .map((subcategory) => {
+        const directItems = (subcategory.items ?? []).filter(matchItem);
+        const subsections = (subcategory.subsections ?? [])
+          .map((subsection) => ({
+            ...subsection,
+            items: subsection.items.filter(matchItem),
+          }))
+          .filter((subsection) => subsection.items.length > 0);
+
+        if (directItems.length === 0 && subsections.length === 0) {return null;}
+        return { ...subcategory, items: directItems, subsections };
+      })
+      .filter((subcategory): subcategory is NonNullable<typeof subcategory> => subcategory !== null);
+
+    if (subcategories.length > 0) {
+      result.push(clone({ ...category, subcategories }));
+    }
+  }
+  return result;
 };
 
 /**
@@ -83,133 +135,68 @@ export const searchItemInCategory = async (
   categoryId: string,
   itemName: string
 ): Promise<ItemSearchResult> => {
-  const response = await apiClient.get<ItemSearchResult>(
-    `/catalog/category/${categoryId}/item/${itemName}`
-  );
-  return response.data;
+  const category = MENU_CATEGORIES.find((c) => c.id === categoryId);
+  if (!category) {
+    throw new Error(`Categoría no encontrada: ${categoryId}`);
+  }
+  const target = normalize(itemName);
+
+  for (const subcategory of category.subcategories) {
+    const directItem = subcategory.items?.find((item) => normalize(item.name) === target);
+    if (directItem) {
+      return clone({ item: directItem, location: { subcategoryName: subcategory.name } });
+    }
+    for (const subsection of subcategory.subsections ?? []) {
+      const subsectionItem = subsection.items.find((item) => normalize(item.name) === target);
+      if (subsectionItem) {
+        return clone({
+          item: subsectionItem,
+          location: { subcategoryName: subcategory.name, subsectionName: subsection.name },
+        });
+      }
+    }
+  }
+  throw new Error(`Producto no encontrado: ${itemName}`);
 };
 
-// ===== PROTECTED ENDPOINTS (ADMIN only) =====
+// ===== ADMIN ENDPOINTS (deshabilitados) =====
+// El panel de administración ha sido retirado y no existe backend. Estas
+// funciones se conservan para mantener la firma del módulo, pero siempre fallan.
 
-/**
- * Create new category (requires ADMIN role)
- */
-export const createCategory = async (data: CreateCategoryRequest): Promise<Category> => {
-  const response = await apiClient.post<Category>('/catalog/category', data);
-  return response.data;
+const adminDisabled = (): never => {
+  throw new Error(BACKEND_DISABLED_MESSAGE);
 };
 
-/**
- * Update existing category (requires ADMIN role)
- */
+export const createCategory = async (_data: CreateCategoryRequest): Promise<Category> =>
+  adminDisabled();
+
 export const updateCategory = async (
-  id: string,
-  data: UpdateCategoryRequest
-): Promise<Category> => {
-  const response = await apiClient.put<Category>(`/catalog/category/${id}`, data);
-  return response.data;
-};
+  _id: string,
+  _data: UpdateCategoryRequest
+): Promise<Category> => adminDisabled();
 
-/**
- * Delete category (requires ADMIN role)
- */
-export const deleteCategory = async (id: string): Promise<DeleteResponse> => {
-  const response = await apiClient.delete<DeleteResponse>(`/catalog/category/${id}`);
-  return response.data;
-};
+export const deleteCategory = async (_id: string): Promise<DeleteResponse> => adminDisabled();
 
-/**
- * Add item to subcategory (requires ADMIN role)
- */
-export const addItem = async (data: AddItemRequest, imageFile?: File): Promise<Category> => {
-  if (imageFile) {
-    // If image exists, use FormData
-    const formData = new FormData();
-    formData.append('categoryId', data.categoryId);
-    formData.append('subcategoryName', data.subcategoryName);
-    if (data.subsectionName) {
-      formData.append('subsectionName', data.subsectionName);
-    }
-    formData.append('item', JSON.stringify(data.item));
-    formData.append('image', imageFile);
+export const addItem = async (_data: AddItemRequest, _imageFile?: File): Promise<Category> =>
+  adminDisabled();
 
-    const response = await apiClient.post<Category>('/catalog/item', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
-    return response.data;
-  } else {
-    // No image, use JSON
-    const response = await apiClient.post<Category>('/catalog/item', data);
-    return response.data;
-  }
-};
-
-/**
- * Delete item from category (requires ADMIN role)
- */
 export const deleteItem = async (
-  categoryId: string,
-  itemName: string
-): Promise<DeleteItemResponse> => {
-  const response = await apiClient.delete<DeleteItemResponse>(
-    `/catalog/category/${categoryId}/item/${itemName}`
-  );
-  return response.data;
-};
+  _categoryId: string,
+  _itemName: string
+): Promise<DeleteItemResponse> => adminDisabled();
 
-/**
- * Update existing item (requires ADMIN role)
- */
 export const updateItem = async (
-  data: UpdateItemRequest,
-  imageFile?: File
-): Promise<Category> => {
-  if (imageFile) {
-    // If image exists, use FormData
-    const formData = new FormData();
-    formData.append('categoryId', data.categoryId);
-    formData.append('subcategoryName', data.subcategoryName);
-    if (data.subsectionName) {
-      formData.append('subsectionName', data.subsectionName);
-    }
-    formData.append('itemName', data.itemName);
-    formData.append('itemData', JSON.stringify(data.itemData));
-    formData.append('image', imageFile);
+  _data: UpdateItemRequest,
+  _imageFile?: File
+): Promise<Category> => adminDisabled();
 
-    const response = await apiClient.put<Category>('/catalog/item', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
-    return response.data;
-  } else {
-    // No image, use JSON
-    const response = await apiClient.put<Category>('/catalog/item', data);
-    return response.data;
-  }
-};
-
-/**
- * Update subcategory name (requires ADMIN role)
- */
 export const updateSubcategoryName = async (
-  data: UpdateSubcategoryNameRequest
-): Promise<Category> => {
-  const response = await apiClient.put<Category>('/catalog/subcategory/name', data);
-  return response.data;
-};
+  _data: UpdateSubcategoryNameRequest
+): Promise<Category> => adminDisabled();
 
-/**
- * Update subsection name (requires ADMIN role)
- */
 export const updateSubsectionName = async (
-  data: UpdateSubsectionNameRequest
-): Promise<Category> => {
-  const response = await apiClient.put<Category>('/catalog/subsection/name', data);
-  return response.data;
-};
+  _data: UpdateSubsectionNameRequest
+): Promise<Category> => adminDisabled();
 
 // ===== UTILITY FUNCTIONS =====
 
@@ -217,67 +204,43 @@ export const updateSubsectionName = async (
  * Find item by name in all categories
  */
 export const findItemByName = async (itemName: string): Promise<ItemSearchResult | null> => {
-  try {
-    const categories = await searchItems(itemName);
+  const target = normalize(itemName);
+  if (!target) {return null;}
 
-    for (const category of categories) {
-      for (const subcategory of category.subcategories) {
-        // Search in direct items
-        const directItem = subcategory.items?.find((item) =>
-          item.name.toLowerCase().includes(itemName.toLowerCase())
+  for (const category of MENU_CATEGORIES) {
+    for (const subcategory of category.subcategories) {
+      const directItem = subcategory.items?.find((item) => normalize(item.name).includes(target));
+      if (directItem) {
+        return clone({ item: directItem, location: { subcategoryName: subcategory.name } });
+      }
+      for (const subsection of subcategory.subsections ?? []) {
+        const subsectionItem = subsection.items.find((item) =>
+          normalize(item.name).includes(target)
         );
-
-        if (directItem) {
-          return {
-            item: directItem,
-            location: {
-              subcategoryName: subcategory.name,
-            },
-          };
-        }
-
-        // Search in subsections
-        if (subcategory.subsections) {
-          for (const subsection of subcategory.subsections) {
-            const subsectionItem = subsection.items.find((item) =>
-              item.name.toLowerCase().includes(itemName.toLowerCase())
-            );
-
-            if (subsectionItem) {
-              return {
-                item: subsectionItem,
-                location: {
-                  subcategoryName: subcategory.name,
-                  subsectionName: subsection.name,
-                },
-              };
-            }
-          }
+        if (subsectionItem) {
+          return clone({
+            item: subsectionItem,
+            location: { subcategoryName: subcategory.name, subsectionName: subsection.name },
+          });
         }
       }
     }
-
-    return null;
-  } catch {
-    return null;
   }
+  return null;
 };
 
 /**
  * Get all items from all categories (flattened)
  */
 export const getAllItems = async (): Promise<MenuItem[]> => {
-  const categories = await getAllCategories();
   const allItems: MenuItem[] = [];
 
-  categories.forEach((category) => {
+  MENU_CATEGORIES.forEach((category) => {
     category.subcategories.forEach((subcategory) => {
-      // Add direct items
       if (subcategory.items) {
         allItems.push(...subcategory.items);
       }
 
-      // Add items from subsections
       if (subcategory.subsections) {
         subcategory.subsections.forEach((subsection) => {
           allItems.push(...subsection.items);
@@ -286,20 +249,18 @@ export const getAllItems = async (): Promise<MenuItem[]> => {
     });
   });
 
-  return allItems;
+  return clone(allItems);
 };
 
 /**
  * Get catalog statistics
  */
 export const getCatalogStats = async (): Promise<CatalogStats> => {
-  const categories = await getAllCategories();
-
   let totalSubcategories = 0;
   let totalItems = 0;
   let totalSubsections = 0;
 
-  categories.forEach((category) => {
+  MENU_CATEGORIES.forEach((category) => {
     totalSubcategories += category.subcategories.length;
 
     category.subcategories.forEach((subcategory) => {
@@ -317,7 +278,7 @@ export const getCatalogStats = async (): Promise<CatalogStats> => {
   });
 
   return {
-    totalCategories: categories.length,
+    totalCategories: MENU_CATEGORIES.length,
     totalSubcategories,
     totalItems,
     totalSubsections,
